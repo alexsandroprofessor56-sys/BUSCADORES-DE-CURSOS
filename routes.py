@@ -471,13 +471,7 @@ def public_login():
 
 @admin_bp.route("/login/google")
 def public_google_login():
-    if "google" not in getattr(oauth, "_clients", {}):
-        return redirect("/")
-    try:
-        redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
-        return oauth.google.authorize_redirect(redirect_uri)
-    except Exception:
-        return redirect("/")
+    return "OK", 200
 
 
 @admin_bp.route("/authorize")
