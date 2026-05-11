@@ -1,0 +1,15 @@
+flask==3.1.2
+flask-sqlalchemy==3.1.1
+flask-socketio==5.6.0
+flask-login==0.6.3
+flask-bcrypt==1.0.1
+flask-limiter==3.12
+flask-talisman==1.1.0
+authlib==1.7.2
+pyotp==2.9.0
+requests==2.32.5
+beautifulsoup4==4.14.3
+psutil==7.1.0
+python-dotenv==1.2.1
+gunicorn==23.0.0
+eventlet==0.39.1

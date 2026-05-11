@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: radar-elite
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -k eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      - key: FORCE_HTTPS
+        value: "1"
+      - key: DATABASE_PATH
+        value: /var/data/instance/database.db
+      - key: RATELIMIT_DEFAULT
+        value: "300 per hour"
+      - key: BRUTE_FORCE_LIMIT
+        value: "5"
+      - key: SOCKETIO_CORS_ORIGINS
+        value: "*"
+      - key: BACKUP_DAILY_ENABLED
+        value: "0"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
