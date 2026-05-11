@@ -107,6 +107,19 @@ def _ensure_schema():
 
 _ensure_schema()
 
+with app.app_context():
+    from core.models import User
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+    admin_user = User.query.filter_by(username=admin_username).first()
+    if not admin_user:
+        pw_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+        db.session.add(User(username=admin_username, password=pw_hash))
+        db.session.commit()
+        app.logger.info(f"Admin criado: {admin_username}")
+    else:
+        app.logger.info(f"Admin encontrado: {admin_username}")
+
 
 @app.context_processor
 def inject_csrf_token():
