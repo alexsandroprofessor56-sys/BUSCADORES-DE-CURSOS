@@ -30,6 +30,12 @@ app.config['REMEMBER_COOKIE_HTTPONLY'] = True
 app.config['REMEMBER_COOKIE_SECURE'] = app.config['SESSION_COOKIE_SECURE']
 
 db.init_app(app)
+
+import os as _os
+_db_dir = _os.path.dirname(database_path)
+if _db_dir and not _os.path.exists(_db_dir):
+    _os.makedirs(_db_dir, exist_ok=True)
+
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'admin_bp.admin_login'
@@ -140,4 +146,4 @@ except Exception:
 
 if __name__ == '__main__':
     debug = os.environ.get('FLASK_DEBUG', '0') == '1'
-    socketio.run(app, host='0.0.0.0', port=5000, debug=debug, use_reloader=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=debug, use_reloader=False, allow_unsafe_werkzeug=True)
