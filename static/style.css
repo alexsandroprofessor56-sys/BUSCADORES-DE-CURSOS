@@ -13,7 +13,7 @@
     --danger: #ef4444;
 }
 
-body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; background-image: radial-gradient(rgba(255,255,255,0.012) 1px, transparent 0); background-size: 32px 32px; }
 
 .glass-card {
     background: var(--bg-card);
@@ -40,6 +40,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     box-shadow: 0 8px 30px rgba(6,182,212,0.3);
 }
 
+.btn-elite:active { transform: scale(0.95); }
+
 .gradient-text {
     background: var(--accent-gradient);
     -webkit-background-clip: text;
@@ -58,9 +60,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-ser
     to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-in {
-    animation: fadeInUp 0.5s ease forwards;
-}
+.animate-in { animation: fadeInUp 0.5s ease forwards; }
 
 .skeleton {
     background: linear-gradient(90deg, var(--bg-surface) 25%, #1f2937 50%, var(--bg-surface) 75%);

@@ -8,26 +8,33 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #05080c; }
-    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; transition: all .3s; }
-    .glass:hover { border-color: rgba(34,211,238,0.2); }
-    .card-gradient { background: linear-gradient(145deg, #0a0f16, #111827); }
-    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #05080c; } ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
-    @keyframes orbFloat { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.05); } }
-    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 20px rgba(6,182,212,0.1); } 50% { box-shadow: 0 0 50px rgba(6,182,212,0.25); } }
-    @keyframes shimmerText { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
-    .orb-1 { width: 500px; height: 500px; background: #06b6d4; top: -200px; left: -100px; opacity: .07; animation: orbFloat 12s ease-in-out infinite; }
-    .orb-2 { width: 400px; height: 400px; background: #f59e0b; bottom: -150px; right: -100px; opacity: .05; animation: orbFloat 15s ease-in-out infinite reverse; }
-    .hero-glow { animation: pulseGlow 3s ease-in-out infinite; }
-    .search-bar:focus { box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
-    .card-enter { animation: fadeSlideUp .45s ease forwards; opacity: 0; }
-    .badge-gratis { background: linear-gradient(135deg, rgba(16,185,129,.2), rgba(16,185,129,.05)); border: 1px solid rgba(16,185,129,.2); color: #34d399; }
-    .badge-barato { background: linear-gradient(135deg, rgba(245,158,11,.2), rgba(245,158,11,.05)); border: 1px solid rgba(245,158,11,.2); color: #fbbf24; }
-    .badge-pago { background: linear-gradient(135deg, rgba(6,182,212,.2), rgba(6,182,212,.05)); border: 1px solid rgba(6,182,212,.2); color: #22d3ee; }
-    .badge-nivel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #9ca3af; }
-    .gradient-text-hero { background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shimmerText 4s linear infinite; }
+    *{scrollbar-width:thin;scrollbar-color:#1f2937 #05080c}
+    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#05080c}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
+    body{font-family:'Inter',sans-serif;background:#05080c;background-image:radial-gradient(rgba(255,255,255,0.015) 1px,transparent 0);background-size:32px 32px}
+    .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;transition:all .3s}
+    .glass:hover{border-color:rgba(34,211,238,0.2)}
+    .card-gradient{background:linear-gradient(145deg,#0a0f16,#111827);position:relative;overflow:hidden}
+    .card-gradient::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(135deg,transparent 30%,rgba(6,182,212,0.15),transparent 70%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .4s;pointer-events:none}
+    .card-gradient:hover::after{opacity:1}
+    @keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+    @keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulseGlow{0%,100%{box-shadow:0 0 20px rgba(6,182,212,0.1)}50%{box-shadow:0 0 50px rgba(6,182,212,0.25)}}
+    @keyframes shimmerText{0%{background-position:-200% center}100%{background-position:200% center}}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes popIn{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+    .orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+    .orb-1{width:500px;height:500px;background:#06b6d4;top:-200px;left:-100px;opacity:.07;animation:orbFloat 12s ease-in-out infinite}
+    .orb-2{width:400px;height:400px;background:#f59e0b;bottom:-150px;right:-100px;opacity:.05;animation:orbFloat 15s ease-in-out infinite reverse}
+    .hero-glow{animation:pulseGlow 3s ease-in-out infinite}
+    .search-bar:focus{box-shadow:0 0 0 2px rgba(6,182,212,0.3)}
+    .card-enter{animation:fadeSlideUp .45s ease forwards;opacity:0}
+    .badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.2);color:#34d399}
+    .badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.2);color:#fbbf24}
+    .badge-pago{background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.05));border:1px solid rgba(6,182,212,.2);color:#22d3ee}
+    .badge-nivel{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af}
+    .gradient-text-hero{background:linear-gradient(135deg,#22d3ee 0%,#06b6d4 50%,#0891b2 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmerText 4s linear infinite}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:999;animation:slideDown .3s ease;background:#0a0f16;border:1px solid rgba(34,211,238,.2);border-radius:12px;padding:12px 20px;color:#e5e7eb;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+    .btn-press:active{transform:scale(.95)}
   </style>
 </head>
 <body class="text-gray-200 min-h-screen">
@@ -35,8 +42,8 @@
 
   <nav class="border-b border-white/5 glass sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-      <a href="/" class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20">RE</div>
+      <a href="/" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all">RE</div>
         <span class="text-lg font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
       </a>
       <div class="flex items-center gap-4 text-sm">
@@ -44,14 +51,14 @@
           <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-user text-xs text-cyan-400"></i> {{ session.site_user_name or session.site_user_email }}</span>
           <a href="/sair" class="hover:text-red-400 transition flex items-center gap-1"><i class="fas fa-sign-out-alt text-xs"></i> Sair</a>
         {% else %}
-          <a href="/login" class="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition text-sm font-medium flex items-center gap-2"><i class="fas fa-google"></i> Entrar</a>
+          <a href="/login" class="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition text-sm font-medium flex items-center gap-2"><i class="fab fa-google"></i> Entrar</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
   <section class="relative z-10 max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
-    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-6">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-6 animate-in">
       <i class="fas fa-fire text-orange-400"></i> {{ pagination.total }} cursos gratuitos encontrados
     </div>
     <h1 class="text-5xl md:text-7xl font-black text-white mb-4 tracking-tight leading-tight">
@@ -63,7 +70,7 @@
         <input type="text" name="q" value="{{ q }}"
           class="search-bar w-full px-6 py-4 rounded-2xl bg-[#0a0f16] border border-white/10 text-white text-lg placeholder-gray-600 outline-none transition-all pr-36"
           placeholder="Pesquise por curso, plataforma ou área...">
-        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2 btn-press">
           <i class="fas fa-search text-sm"></i> Buscar
         </button>
       </div>
@@ -72,35 +79,35 @@
 
   <section class="relative z-10 max-w-7xl mx-auto px-6 pb-8">
     <div class="flex flex-wrap gap-2 items-center justify-center">
-      <a href="/" class="px-4 py-1.5 rounded-full text-sm font-medium transition flex items-center gap-1 {% if not area and not preco and not nivel %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+      <a href="/" class="px-4 py-1.5 rounded-full text-sm font-medium transition flex items-center gap-1 {% if not area and not preco and not nivel %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-th-large text-xs"></i> Todos
       </a>
       {% for a in areas[:10] %}
       <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-1.5 rounded-full text-sm font-medium transition {% if area == a %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition {% if area == a %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         {{ a }}
       </a>
       {% endfor %}
     </div>
     <div class="flex flex-wrap gap-2 items-center justify-center mt-3">
       <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-check-circle text-[10px]"></i> Gratuito
       </a>
       <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'barato' %}badge-barato font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'barato' %}badge-barato font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-tag text-[10px]"></i> Barato
       </a>
       <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'iniciante' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'iniciante' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-seedling text-[10px]"></i> Iniciante
       </a>
       <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'intermediario' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'intermediario' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-chart-line text-[10px]"></i> Intermediário
       </a>
       <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'avancado' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'avancado' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %} btn-press">
         <i class="fas fa-rocket text-[10px]"></i> Avançado
       </a>
     </div>
@@ -139,7 +146,7 @@
           <span class="text-xs text-gray-600 flex items-center gap-1"><i class="fas fa-eye"></i> {{ curso.cliques or 0 }} acessos</span>
           <div class="flex gap-2">
             <button onclick="favoritar({{ curso.id }})" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-yellow-500/20 text-gray-500 hover:text-yellow-400 transition flex items-center justify-center" title="Favoritar"><i class="fas fa-star text-xs"></i></button>
-            <a href="/c/{{ curso.id }}" target="_blank" class="px-4 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5">
+            <a href="/c/{{ curso.id }}" target="_blank" class="px-4 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 btn-press">
               <i class="fas fa-external-link-alt text-[10px]"></i> ACESSAR
             </a>
           </div>
@@ -152,12 +159,12 @@
     <div class="flex justify-center mt-12 gap-2">
       {% if pagination.has_prev %}
       <a href="?page={{ pagination.prev_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1"><i class="fas fa-chevron-left text-xs"></i> Anterior</a>
+        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1 btn-press"><i class="fas fa-chevron-left text-xs"></i> Anterior</a>
       {% endif %}
       {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
         <a href="?page={{ p }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-          class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-medium transition {% if p == pagination.page %}bg-gradient-to-br from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30{% endif %}">
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-medium transition {% if p == pagination.page %}bg-gradient-to-br from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30{% endif %} btn-press">
           {{ p }}
         </a>
         {% else %}
@@ -166,7 +173,7 @@
       {% endfor %}
       {% if pagination.has_next %}
       <a href="?page={{ pagination.next_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1">Próxima <i class="fas fa-chevron-right text-xs"></i></a>
+        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1 btn-press">Próxima <i class="fas fa-chevron-right text-xs"></i></a>
       {% endif %}
     </div>
     {% endif %}
@@ -178,7 +185,7 @@
       </div>
       <p class="text-gray-400 text-xl font-medium mb-2">Nenhum curso encontrado</p>
       <p class="text-gray-600 text-sm mb-6">Tente ajustar os filtros ou buscar por outro termo</p>
-      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:-translate-y-0.5">
+      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:-translate-y-0.5 btn-press">
         <i class="fas fa-times"></i> Limpar filtros
       </a>
     </div>
@@ -195,14 +202,23 @@
     </div>
   </footer>
 
+  <div id="toastContainer"></div>
+
   <script>
+    function toast(msg, icon='fa-check-circle') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast flex items-center gap-2';
+      t.innerHTML = `<i class="fas ${icon} text-cyan-400"></i> ${msg}`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 2500);
+    }
     function favoritar(id) {
       fetch('/api/favoritar/' + id, { method: 'POST' })
         .then(r => r.json())
-        .then(d => { if(d.success) location.reload(); })
-        .catch(() => {});
+        .then(d => { if(d.success) toast('Curso favoritado!', 'fa-star'); else toast(d.error || 'Erro', 'fa-exclamation-circle'); })
+        .catch(() => toast('Faça login para favoritar', 'fa-exclamation-triangle'));
     }
-    document.querySelectorAll('.card-enter').forEach((el, i) => { el.style.animationDelay = (i * 0.04) + 's'; });
   </script>
 </body>
 </html>

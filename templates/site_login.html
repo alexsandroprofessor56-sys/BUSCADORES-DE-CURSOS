@@ -8,25 +8,26 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #05080c; }
-    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
-    .btn-google { transition: all 0.3s; }
-    .btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,255,255,0.1); }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
-    .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; }
-    .orb:nth-child(1) { width: 400px; height: 400px; background: #06b6d4; top: -150px; left: -100px; animation: float 8s ease-in-out infinite; opacity: .08; }
-    .orb:nth-child(2) { width: 300px; height: 300px; background: #f59e0b; bottom: -100px; right: -80px; animation: float 10s ease-in-out infinite reverse; opacity: .06; }
+    body{font-family:'Inter',sans-serif;background:#05080c;background-image:radial-gradient(rgba(255,255,255,0.012) 1px,transparent 0);background-size:32px 32px}
+    .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;transition:all .3s}
+    .btn-google{transition:all .3s}.btn-google:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,255,255,0.1)}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+    @keyframes popIn{0%{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none}
+    .orb:nth-child(1){width:400px;height:400px;background:#06b6d4;top:-150px;left:-100px;animation:float 8s ease-in-out infinite;opacity:.08}
+    .orb:nth-child(2){width:300px;height:300px;background:#f59e0b;bottom:-100px;right:-80px;animation:float 10s ease-in-out infinite reverse;opacity:.06}
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
   <div class="orb"></div><div class="orb"></div>
-  <div class="w-full max-w-sm text-center relative">
-    <div class="mb-8">
+  <div class="w-full max-w-sm text-center relative" style="animation:popIn .4s ease">
+    <div class="mb-8" style="animation:slideUp .5s ease">
       <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-cyan-600 flex items-center justify-center text-black font-black text-2xl mx-auto mb-4 shadow-lg shadow-cyan-500/20">RE</div>
       <h1 class="text-3xl font-bold text-white">Radar<span class="text-cyan-400">Elite</span></h1>
       <p class="text-gray-500 mt-2">Entre para favoritar cursos</p>
     </div>
-    <div class="glass rounded-2xl p-8">
+    <div class="glass rounded-2xl p-8" style="animation:slideUp .5s ease .1s both">
       {% if google_ready %}
       <a href="{{ google_login_url }}"
         class="btn-google inline-flex items-center gap-3 px-8 py-4 bg-white hover:bg-gray-100 text-gray-800 font-bold rounded-2xl transition shadow-lg w-full justify-center">
