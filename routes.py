@@ -469,14 +469,7 @@ def public_login():
 
 @admin_bp.route("/login/google")
 def public_google_login():
-    if not hasattr(oauth, "google"):
-        return render_template("site_login.html", google_ready=False, google_login_url="#", erro="Google OAuth não configurado.")
-    try:
-        redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
-        return oauth.google.authorize_redirect(redirect_uri)
-    except Exception as e:
-        current_app.logger.warning(f"Erro no redirect Google OAuth: {e}")
-        return render_template("site_login.html", google_ready=False, google_login_url="#", erro="Erro ao conectar com Google.")
+    return redirect(url_for("admin_bp.index"))
 
 
 @admin_bp.route("/authorize")
