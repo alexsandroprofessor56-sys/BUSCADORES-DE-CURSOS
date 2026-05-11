@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar Elite - Buscador de Cursos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: { 900: '#05080c', 800: '#0a0f16', 700: '#111827', 600: '#1f2937' },
+            cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
+            gold: { 400: '#facc15', 500: '#eab308' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #05080c; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+    .glass:hover { border-color: rgba(34,211,238,0.2); }
+    .gradient-text { background: linear-gradient(135deg, #22d3ee, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-gradient { background: linear-gradient(145deg, #0a0f16, #111827); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #05080c; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+    @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px rgba(6,182,212,0.1); } 50% { box-shadow: 0 0 40px rgba(6,182,212,0.3); } }
+    .hero-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    .search-bar:focus { box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
+    .fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
+    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+    .card-enter { animation: cardIn 0.4s ease forwards; opacity: 0; transform: translateY(20px); }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+    .badge-free { background: linear-gradient(135deg, #059669, #10b981); }
+    .badge-paid { background: linear-gradient(135deg, #d97706, #f59e0b); }
+  </style>
+</head>
+<body class="text-gray-200 min-h-screen">
+
+  <!-- NAV -->
+  <nav class="border-b border-white/5 glass sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-black font-bold text-sm">RE</div>
+        <span class="text-lg font-bold tracking-tight">Radar<span class="text-cyan-400">Elite</span></span>
+      </a>
+      <div class="flex items-center gap-4 text-sm">
+        {% if session.site_user_email %}
+          <span class="text-gray-500">{{ session.site_user_name or session.site_user_email }}</span>
+          <a href="/sair" class="hover:text-red-400 transition">Sair</a>
+        {% else %}
+          <a href="/login" class="hover:text-cyan-400 transition">Entrar</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO / SEARCH -->
+  <section class="max-w-4xl mx-auto px-6 pt-16 pb-10 text-center">
+    <div class="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-4">
+      🔥 {{ pagination.total }} cursos gratuitos encontrados
+    </div>
+    <h1 class="text-5xl md:text-6xl font-black text-white mb-4 tracking-tight">
+      Busque o <span class="gradient-text">Curso Ideal</span>
+    </h1>
+    <p class="text-gray-500 text-lg mb-8">Cursos gratuitos com certificado das melhores plataformas</p>
+    <form method="GET" action="/" class="max-w-2xl mx-auto">
+      <div class="relative">
+        <input type="text" name="q" value="{{ q }}"
+          class="search-bar w-full px-6 py-4 rounded-2xl bg-dark-700 border border-white/10 text-white text-lg
+                 placeholder-gray-600 outline-none transition-all"
+          placeholder="Pesquise por curso, plataforma ou área...">
+        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2 bg-cyan-500
+                 hover:bg-cyan-600 text-black font-bold rounded-xl transition">
+          Buscar
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- FILTERS -->
+  <section class="max-w-7xl mx-auto px-6 pb-6">
+    <div class="flex flex-wrap gap-2 items-center justify-center">
+      <a href="/" class="px-4 py-1.5 rounded-full text-sm font-medium transition
+        {% if not area and not preco and not nivel %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        Todos
+      </a>
+      {% for a in areas[:10] %}
+      <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}"
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition
+        {% if area == a %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        {{ a }}
+      </a>
+      {% endfor %}
+    </div>
+    <div class="flex flex-wrap gap-2 items-center justify-center mt-3">
+      <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
+        class="px-3 py-1 rounded-full text-xs font-medium transition
+        {% if preco == 'gratuito' %}bg-green-600 text-white{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        ✅ Gratuito
+      </a>
+      <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
+        class="px-3 py-1 rounded-full text-xs font-medium transition
+        {% if preco == 'barato' %}bg-yellow-600 text-white{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        💰 Barato
+      </a>
+      <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}"
+        class="px-3 py-1 rounded-full text-xs font-medium transition
+        {% if nivel == 'iniciante' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        🌱 Iniciante
+      </a>
+      <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}"
+        class="px-3 py-1 rounded-full text-xs font-medium transition
+        {% if nivel == 'intermediario' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        📈 Intermediário
+      </a>
+      <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}"
+        class="px-3 py-1 rounded-full text-xs font-medium transition
+        {% if nivel == 'avancado' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        🚀 Avançado
+      </a>
+    </div>
+  </section>
+
+  <!-- COURSES GRID -->
+  <section class="max-w-7xl mx-auto px-6 pb-12">
+    {% if cursos %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for curso in cursos %}
+      <div class="card-gradient rounded-2xl border border-white/5 p-5 hover:border-cyan-500/30 transition-all duration-300
+                  hover:translate-y-[-2px] card-enter" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold uppercase flex-shrink-0"
+               style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
+            {{ curso.logo_initials or 'RE' }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 class="font-semibold text-white text-sm leading-tight mb-1 line-clamp-2">{{ curso.nome }}</h3>
+            <p class="text-xs text-gray-500">{{ curso.plataforma or 'Plataforma' }}</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ curso.descricao[:120] }}...</p>
+
+        <div class="flex flex-wrap gap-1.5 mb-3">
+          {% if curso.preco_tipo == 'gratuito' %}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold badge-free text-white">Grátis</span>
+          {% elif curso.preco_tipo == 'barato' %}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold badge-paid text-white">Barato</span>
+          {% endif %}
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-dark-600 text-gray-400">{{ curso.nivel }}</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-dark-600 text-green-400">✅ Certificado</span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-600">{{ curso.cliques or 0 }} acessos</span>
+          <div class="flex gap-2">
+            <button onclick="favoritar({{ curso.id }})" class="text-gray-600 hover:text-yellow-400 transition text-sm">★</button>
+            <a href="/c/{{ curso.id }}" target="_blank"
+              class="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-black text-xs font-bold rounded-lg transition">
+              ACESSAR
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="flex justify-center mt-10 gap-2">
+      {% if pagination.has_prev %}
+      <a href="?page={{ pagination.prev_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
+        class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-sm transition">← Anterior</a>
+      {% endif %}
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+        <a href="?page={{ p }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
+          class="px-4 py-2 rounded-xl text-sm transition
+          {% if p == pagination.page %}bg-cyan-500 text-black font-bold{% else %}bg-dark-700 hover:bg-dark-600{% endif %}">
+          {{ p }}
+        </a>
+        {% else %}
+        <span class="px-2 py-2 text-gray-600">...</span>
+        {% endif %}
+      {% endfor %}
+      {% if pagination.has_next %}
+      <a href="?page={{ pagination.next_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
+        class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-sm transition">Próxima →</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-20">
+      <p class="text-6xl mb-4">🔍</p>
+      <p class="text-gray-500 text-lg">Nenhum curso encontrado</p>
+      <a href="/" class="mt-4 inline-block px-6 py-2 bg-cyan-500 text-black rounded-xl font-bold">Limpar filtros</a>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-8 text-center text-gray-600 text-sm">
+    <p>Radar Elite © 2026 · Buscador de Cursos Gratuitos</p>
+  </footer>
+
+  <script>
+    function favoritar(id) {
+      fetch('/api/favoritar/' + id, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => { if(d.success) location.reload(); })
+        .catch(() => alert('Faça login para favoritar'));
+    }
+  </script>
+</body>
+</html>

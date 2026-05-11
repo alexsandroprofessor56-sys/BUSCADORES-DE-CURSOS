@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>TERMINAL DE MONITORAMENTO | RADAR ELITE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #000; color: #00ff00; font-family: 'Courier New', monospace; }
+        .monitor-screen { border: 2px solid #004400; background: #050505; }
+    </style>
+</head>
+<body class="p-10">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-10 border-b border-green-900 pb-5">
+            <h1 class="text-2xl font-bold">[!] PAINEL DE CONTROLE SUPREMO - ALEX</h1>
+            <p class="text-xs opacity-50">Status: Monitorando tráfego em tempo real...</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Estatísticas -->
+            <div class="monitor-screen p-6 rounded-lg">
+                <h2 class="text-xl mb-4 text-green-400">> MÉTRICAS DE ACESSO</h2>
+                <ul class="space-y-2 text-sm">
+                    <li>CLIQUES TOTAIS: <span class="text-white">4.281</span></li>
+                    <li>USUÁRIOS ONLINE: <span class="text-white">12</span></li>
+                    <li>CURSO MAIS BUSCADO: <span class="text-white">Python Hacker</span></li>
+                </ul>
+            </div>
+
+            <!-- Gerenciar Cursos -->
+            <div class="monitor-screen p-6 rounded-lg">
+                <h2 class="text-xl mb-4 text-green-400">> COMANDOS DE SISTEMA</h2>
+                <div class="flex flex-col gap-3">
+                    <button class="bg-green-900 hover:bg-green-700 text-white p-2 text-xs">ADICIONAR NOVO CURSO</button>
+                    <button class="bg-red-900 hover:bg-red-700 text-white p-2 text-xs">BANIR IP SUSPEITO</button>
+                    <button class="bg-blue-900 hover:bg-blue-700 text-white p-2 text-xs">LIMPAR CACHE DE BUSCA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

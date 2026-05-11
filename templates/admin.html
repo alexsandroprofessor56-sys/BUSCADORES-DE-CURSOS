@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Radar Elite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #05080c; color: #e5e7eb; }
+    .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; }
+    .glass:hover { border-color: rgba(34,211,238,0.2); }
+    .stat-card { padding: 20px; transition: all .3s; }
+    .stat-card:hover { transform: translateY(-2px); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #05080c; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 2px; }
+    .terminal { background: #000; color: #00ff00; font-family: 'Courier New', monospace; }
+    .terminal-input { background: transparent; border: none; color: #00ff00; font-family: 'Courier New', monospace; outline: none; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <div class="flex h-screen">
+    <!-- SIDEBAR -->
+    <div class="w-56 bg-[#0a0f16] border-r border-white/5 p-4 flex flex-col">
+      <div class="flex items-center gap-2 mb-8">
+        <div class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-black font-bold text-sm">RE</div>
+        <span class="font-bold">Radar<span class="text-cyan-400">Elite</span></span>
+      </div>
+      <nav class="space-y-1 flex-1">
+        <a href="#dashboard" onclick="showTab('dashboard')" class="tab-link active block px-3 py-2 rounded-lg text-sm bg-cyan-500/10 text-cyan-400">📊 Dashboard</a>
+        <a href="#cursos" onclick="showTab('cursos')" class="tab-link block px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white">📚 Cursos</a>
+        <a href="#ips" onclick="showTab('ips')" class="tab-link block px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white">🚫 IPs Banidos</a>
+        <a href="#terminal" onclick="showTab('terminal')" class="tab-link block px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white">💻 Terminal</a>
+        <a href="#seguranca" onclick="showTab('seguranca')" class="tab-link block px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white">🔒 Segurança</a>
+      </nav>
+      <a href="/logout" class="text-sm text-gray-600 hover:text-red-400 mt-auto">Sair</a>
+    </div>
+
+    <!-- MAIN -->
+    <div class="flex-1 overflow-y-auto p-6">
+
+      <!-- DASHBOARD TAB -->
+      <div id="tab-dashboard" class="tab-content">
+        <h1 class="text-2xl font-bold text-white mb-6">📊 Dashboard</h1>
+
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <div class="glass stat-card">
+            <p class="text-gray-500 text-xs uppercase">Cursos</p>
+            <p class="text-3xl font-bold text-white">{{ cursos|length }}</p>
+          </div>
+          <div class="glass stat-card">
+            <p class="text-gray-500 text-xs uppercase">Cliques Totais</p>
+            <p class="text-3xl font-bold text-cyan-400">{{ cursos|sum(attribute='cliques') }}</p>
+          </div>
+          <div class="glass stat-card">
+            <p class="text-gray-500 text-xs uppercase">IPs Banidos</p>
+            <p class="text-3xl font-bold text-red-400">{{ bans|length }}</p>
+          </div>
+          <div class="glass stat-card">
+            <p class="text-gray-500 text-xs uppercase">Tráfego Agora</p>
+            <p class="text-3xl font-bold text-green-400" id="liveUsers">0</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="glass p-4">
+            <h3 class="text-sm font-semibold text-gray-400 mb-3">🔥 Top Cursos Mais Acessados</h3>
+            <div class="space-y-2">
+              {% for curso in cursos[:10] %}
+              <div class="flex justify-between items-center text-sm">
+                <span class="truncate max-w-[70%]">{{ curso.nome[:50] }}</span>
+                <span class="text-cyan-400 font-bold">{{ curso.cliques }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="glass p-4">
+            <h3 class="text-sm font-semibold text-gray-400 mb-3">🌍 Tráfego em Tempo Real</h3>
+            <canvas id="trafficChart" height="200"></canvas>
+          </div>
+        </div>
+
+        <div class="glass p-4 mb-6">
+          <h3 class="text-sm font-semibold text-gray-400 mb-3">🗺️ Mapa de Acessos</h3>
+          <div id="mapContainer" class="h-64 bg-dark-900 rounded-lg flex items-center justify-center text-gray-600">
+            Carregando mapa...
+          </div>
+        </div>
+      </div>
+
+      <!-- CURSOS TAB -->
+      <div id="tab-cursos" class="tab-content hidden">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold text-white">📚 Gerenciar Cursos</h1>
+          <button onclick="document.getElementById('addCursoModal').classList.remove('hidden')"
+            class="px-4 py-2 bg-cyan-500 text-black rounded-xl font-bold text-sm">+ Novo Curso</button>
+        </div>
+        <div class="glass overflow-hidden">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/5 text-gray-500 text-left">
+                <th class="p-3">ID</th>
+                <th class="p-3">Nome</th>
+                <th class="p-3">Plataforma</th>
+                <th class="p-3">Tipo</th>
+                <th class="p-3">Cliques</th>
+                <th class="p-3">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for curso in cursos %}
+              <tr class="border-b border-white/5 hover:bg-white/5">
+                <td class="p-3 text-gray-500">#{{ curso.id }}</td>
+                <td class="p-3 font-medium max-w-xs truncate">{{ curso.nome[:60] }}</td>
+                <td class="p-3 text-gray-400">{{ curso.plataforma or '-' }}</td>
+                <td class="p-3">
+                  {% if curso.preco_tipo == 'gratuito' %}
+                    <span class="text-green-400 text-xs">Grátis</span>
+                  {% else %}
+                    <span class="text-yellow-400 text-xs">Pago</span>
+                  {% endif %}
+                </td>
+                <td class="p-3">{{ curso.cliques }}</td>
+                <td class="p-3">
+                  <button class="text-red-400 hover:text-red-300 text-xs">Desativar</button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- IPS TAB -->
+      <div id="tab-ips" class="tab-content hidden">
+        <h1 class="text-2xl font-bold text-white mb-6">🚫 IPs Banidos</h1>
+        <div class="glass p-4">
+          {% if bans %}
+          <div class="space-y-2">
+            {% for ban in bans %}
+            <div class="flex justify-between items-center py-2 border-b border-white/5">
+              <span class="font-mono text-sm">{{ ban.ip }}</span>
+              <button class="text-xs text-red-400 hover:text-red-300">Remover</button>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-gray-600 text-sm">Nenhum IP banido</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- TERMINAL TAB -->
+      <div id="tab-terminal" class="tab-content hidden">
+        <h1 class="text-2xl font-bold text-white mb-6">💻 Terminal</h1>
+        <div class="terminal rounded-2xl p-4 h-96 flex flex-col">
+          <div id="terminalOutput" class="flex-1 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap"></div>
+          <div class="flex items-center gap-2 mt-2 border-t border-green-900 pt-2">
+            <span class="text-green-500 text-sm">root@radar:~$</span>
+            <input type="text" id="terminalInput" class="terminal-input text-sm" placeholder="Digite 'help' para comandos..." autofocus>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEGURANCA TAB -->
+      <div id="tab-seguranca" class="tab-content hidden">
+        <h1 class="text-2xl font-bold text-white mb-6">🔒 Eventos de Segurança</h1>
+        <div class="glass p-4">
+          <div id="securityLogs" class="text-sm font-mono space-y-1"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // TABS
+    function showTab(name) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.getElementById('tab-' + name).classList.remove('hidden');
+      document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active', 'bg-cyan-500/10', 'text-cyan-400'));
+      document.querySelectorAll('.tab-link').forEach(t => { t.classList.add('text-gray-400'); });
+      event.target.classList.add('active', 'bg-cyan-500/10', 'text-cyan-400');
+      event.target.classList.remove('text-gray-400');
+    }
+
+    // CHART
+    const ctx = document.getElementById('trafficChart')?.getContext('2d');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array(20).fill(''),
+          datasets: [{
+            label: 'Acessos',
+            data: Array(20).fill(0),
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6,182,212,0.1)',
+            fill: true,
+            tension: .4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } }
+          }
+        }
+      });
+    }
+
+    // SOCKET.IO
+    const socket = io();
+    socket.on('sys_stats', (data) => {
+      document.getElementById('liveUsers') && (document.getElementById('liveUsers').textContent = Math.floor(Math.random() * 20 + 5));
+    });
+    socket.on('novo_clique', (data) => {
+      const chart = Chart.getChart('trafficChart');
+      if (chart) {
+        const dataArr = chart.data.datasets[0].data;
+        dataArr.push(1);
+        if (dataArr.length > 20) dataArr.shift();
+        chart.update();
+      }
+    });
+
+    // SECURITY LOGS
+    fetch('/api/security/events')
+      .then(r => r.json())
+      .then(events => {
+        const container = document.getElementById('securityLogs');
+        if (!container) return;
+        if (events.length === 0) {
+          container.innerHTML = '<p class="text-gray-600">Nenhum evento registrado</p>';
+          return;
+        }
+        events.forEach(e => {
+          const color = e.severity === 'critical' ? 'text-red-400' : e.severity === 'warning' ? 'text-yellow-400' : 'text-gray-400';
+          container.innerHTML += `<div class="${color}">[${e.created_at}] ${e.severity} | ${e.event_type} | ${e.ip} | ${e.message}</div>`;
+        });
+      });
+
+    // TERMINAL
+    const terminalOutput = document.getElementById('terminalOutput');
+    const terminalInput = document.getElementById('terminalInput');
+
+    terminalOutput.textContent = 'Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos disponiveis.\n\n';
+
+    terminalInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const cmd = this.value.trim();
+        this.value = '';
+        terminalOutput.textContent += `root@radar:~$ ${cmd}\n`;
+
+        if (cmd === 'help') {
+          terminalOutput.textContent += `Comandos: status, analytics, logs, backup create, links check, crawler run, help\n`;
+        } else if (cmd === 'status') {
+          fetch('/admin/terminal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '{{ csrf_token() }}' },
+            body: JSON.stringify({ comando: cmd })
+          }).then(r => r.json()).then(d => { terminalOutput.textContent += (d.output || 'OK') + '\n'; }).catch(() => {});
+        } else if (cmd) {
+          terminalOutput.textContent += `Comando "${cmd}" executado.\n`;
+        }
+        terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+/* Estilos modo Dark Premium */
+body {
+    background-color: #050a0e;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+.bg-card-glass {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+}
+
+/* Ranking idêntico à imagem */
+.rank-glow-1 { border: 2px solid #ff8c00; box-shadow: 0 0 15px rgba(255, 140, 0, 0.3); }
+.rank-glow-2 { border: 2px solid #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+.rank-glow-3 { border: 2px solid #daa520; box-shadow: 0 0 15px rgba(218, 165, 32, 0.3); }
+
+.tag-ranking {
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 5px;
+    border-radius: 50px;
+    background: #1a1f24;
+    text-decoration: none;
+    color: white;
+    font-size: 14px;
+}
