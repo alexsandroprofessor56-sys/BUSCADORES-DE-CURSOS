@@ -3,45 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - Radar Elite</title>
+<title>Dashboard — Radar Elite</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-*{scrollbar-width:thin;scrollbar-color:#1f2937 #05080c}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#05080c}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:2px}
-body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hidden;background-image:radial-gradient(rgba(255,255,255,0.012) 1px,transparent 0);background-size:32px 32px}
-.glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;transition:all 0.3s}
-.glass:hover{border-color:rgba(34,211,238,0.2)}
-.stat-card{position:relative;overflow:hidden;padding:20px;transition:all 0.4s cubic-bezier(0.4,0,0.2,1)}
-.stat-card::before{content:'';position:absolute;inset:0;border-radius:12px;padding:1px;background:linear-gradient(135deg,transparent 40%,rgba(6,182,212,0.2),transparent 60%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity 0.4s}
+*{margin:0;padding:0;box-sizing:border-box}
+*,*::before,*::after{scrollbar-width:thin;scrollbar-color:#1f2937 transparent}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:2px}
+body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hidden}
+.noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
+.glass{background:rgba(255,255,255,0.02);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid rgba(255,255,255,0.06);border-radius:16px;transition:all .4s cubic-bezier(.22,1,.36,1)}
+.glass:hover{border-color:rgba(34,211,238,0.15)}
+.stat-card{position:relative;overflow:hidden;padding:20px 24px;transition:all .5s cubic-bezier(.22,1,.36,1);cursor:default}
+.stat-card::before{content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,transparent 30%,rgba(6,182,212,0.25),transparent 70%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .6s}
 .stat-card:hover::before{opacity:1}
-.stat-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(6,182,212,0.08)}
-.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
-.orb-1{width:500px;height:500px;background:#06b6d4;top:-200px;right:-150px;opacity:.08;animation:orbFloat 12s ease-in-out infinite}
-.orb-2{width:400px;height:400px;background:#f59e0b;bottom:-150px;left:-120px;opacity:.06;animation:orbFloat 15s ease-in-out infinite reverse}
-.orb-3{width:300px;height:300px;background:#ef4444;top:40%;left:50%;opacity:.04;animation:orbFloat 18s ease-in-out infinite 2s}
-@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
-.sidebar-link{transition:all 0.3s;border-radius:10px;position:relative}
-.sidebar-link:hover{background:rgba(6,182,212,0.05);color:#06b6d4}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(6,182,212,0.06)}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.orb-1{width:500px;height:500px;background:#06b6d4;top:-200px;right:-150px;opacity:.06;animation:orbFloat 20s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:#f59e0b;bottom:-150px;left:-120px;opacity:.04;animation:orbFloat 25s ease-in-out infinite reverse}
+.orb-3{width:300px;height:300px;background:#8b5cf6;top:40%;left:50%;opacity:.03;animation:orbFloat 30s ease-in-out infinite 5s}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}33%{transform:translateY(-20px) scale(1.02)}66%{transform:translateY(10px) scale(.98)}}
+.sidebar-link{transition:all .3s cubic-bezier(.22,1,.36,1);border-radius:12px;position:relative;cursor:pointer}
+.sidebar-link:hover{background:rgba(6,182,212,0.06);color:#06b6d4}
 .sidebar-link.active{background:linear-gradient(135deg,rgba(6,182,212,0.12),transparent 80%);color:#06b6d4}
-.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#22d3ee,#06b6d4,#0891b2)}
+.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:22px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,#22d3ee,#06b6d4,#0891b2)}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-.tab-enter{animation:fadeSlide .35s ease forwards}
-.pulse-dot{width:8px;height:8px;border-radius:50%;animation:pulse-dot 2s infinite;box-shadow:0 0 12px rgba(16,185,129,.3)}
-@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-.terminal{background:#000;color:#00ff00;font-family:'Courier New',monospace}
-.terminal-input{background:transparent;border:none;color:#00ff00;font-family:'Courier New',monospace;outline:none;width:100%}
-.badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.2);color:#34d399}
-.badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.2);color:#fbbf24}
-.badge-pago{background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.05));border:1px solid rgba(6,182,212,.2);color:#22d3ee}
-.glow-cyan{box-shadow:0 0 20px rgba(6,182,212,.08)}
-.btn-press:active{transform:scale(.95)}
+.tab-enter{animation:fadeSlide .4s cubic-bezier(.22,1,.36,1) forwards}
+.pulse-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s infinite;box-shadow:0 0 16px rgba(16,185,129,.3)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.terminal{background:#000;color:#00ff00;font-family:'Courier New',monospace;border-radius:14px}
+.terminal-input{background:transparent;border:none;color:#00ff00;font-family:'Courier New',monospace;outline:none;width:100%;font-size:14px}
+.badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.2);color:#34d399}
+.badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.18),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);color:#fbbf24}
+.badge-pago{background:linear-gradient(135deg,rgba(6,182,212,.18),rgba(6,182,212,.04));border:1px solid rgba(6,182,212,.2);color:#22d3ee}
+.glow-cyan{box-shadow:0 0 30px rgba(6,182,212,.06)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-weight:600;font-size:12px;transition:all .3s cubic-bezier(.22,1,.36,1);cursor:pointer;border:none}
+.btn:active{transform:scale(.93)}
+.btn-ghost{background:rgba(255,255,255,0.04);color:#9ca3af;border:1px solid rgba(255,255,255,0.06)}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:#e5e7eb}
+@media(max-width:768px){.stat-card{padding:16px 18px}}
 </style>
 </head>
 <body>
+<div class="noise"></div>
 <div class="orbs fixed inset-0 pointer-events-none z-0"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
 
 <div class="flex h-screen relative z-10">
@@ -63,60 +70,46 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
     </div>
   </div>
 
-  <div class="flex-1 overflow-y-auto p-6">
+  <div class="flex-1 overflow-y-auto p-4 sm:p-6">
     <div id="tab-dashboard" class="tab-content tab-enter">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-chart-pie mr-2"></i>Dashboard</span></h1>
-        <div class="flex items-center gap-4">
-          <span class="text-xs text-gray-600 flex items-center gap-2"><span class="pulse-dot bg-emerald-400"></span> Ao vivo</span>
-        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-chart-pie mr-2"></i>Dashboard</span></h1>
+        <span class="text-xs text-gray-600 flex items-center gap-2"><span class="pulse-dot bg-emerald-400"></span> Ao vivo</span>
       </div>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div class="glass stat-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Cursos</p>
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center text-cyan-400 shadow-lg shadow-cyan-500/5"><i class="fas fa-graduation-cap text-sm"></i></div>
-          </div>
-          <p class="text-3xl font-black text-white tracking-tight">{{ cursos|length }}</p>
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Cursos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center text-cyan-400"><i class="fas fa-graduation-cap text-sm"></i></div></div>
+          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ cursos|length }}</p>
           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-database mr-1"></i> total cadastrados</p>
         </div>
         <div class="glass stat-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Cliques</p>
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400/20 to-amber-600/10 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-500/5"><i class="fas fa-mouse-pointer text-sm"></i></div>
-          </div>
-          <p class="text-3xl font-black text-white tracking-tight">{{ cursos|sum(attribute='cliques') }}</p>
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Cliques</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 flex items-center justify-center text-amber-400"><i class="fas fa-mouse-pointer text-sm"></i></div></div>
+          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ cursos|sum(attribute='cliques') }}</p>
           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-arrow-up mr-1 text-emerald-500"></i> total de acessos</p>
         </div>
         <div class="glass stat-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Banidos</p>
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400 shadow-lg shadow-red-500/5"><i class="fas fa-ban text-sm"></i></div>
-          </div>
-          <p class="text-3xl font-black text-white tracking-tight">{{ bans|length }}</p>
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Banidos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400"><i class="fas fa-ban text-sm"></i></div></div>
+          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ bans|length }}</p>
           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-shield mr-1"></i> IPs bloqueados</p>
         </div>
         <div class="glass stat-card">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-gray-500 text-xs uppercase tracking-widest font-semibold">Tráfego</p>
-            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/5"><i class="fas fa-wifi text-sm"></i></div>
-          </div>
-          <p class="text-3xl font-black text-white tracking-tight" id="liveUsers">0</p>
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Tráfego</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center text-emerald-400"><i class="fas fa-wifi text-sm"></i></div></div>
+          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight" id="liveUsers">0</p>
           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-circle text-emerald-500 text-[6px] mr-1 animate-pulse"></i> usuarios agora</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <div class="lg:col-span-2 glass p-5 glow-cyan">
+        <div class="lg:col-span-2 glass p-4 sm:p-5 glow-cyan">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-chart-line text-cyan-400"></i> Tráfego em Tempo Real</h3>
           <canvas id="trafficChart" height="200"></canvas>
         </div>
-        <div class="glass p-5">
+        <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-fire text-orange-400"></i> Top Cursos</h3>
           <div class="space-y-1">
             {% for curso in cursos[:8] %}
-            <div class="flex justify-between items-center py-2 px-2 rounded-lg hover:bg-white/[0.02] transition-colors group">
+            <div class="flex justify-between items-center py-2 px-2 rounded-lg hover:bg-white/[0.015] transition-colors group">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="text-[10px] font-mono w-5 text-center {{ 'text-cyan-400' if loop.index <= 3 else 'text-gray-600' }}">#{{ loop.index }}</span>
                 <span class="text-xs truncate group-hover:text-cyan-400 transition-colors">{{ curso.nome[:40] }}</span>
@@ -129,17 +122,15 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="glass p-5">
+        <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-globe-americas text-cyan-400"></i> Acessos Globais</h3>
-          <div class="h-48 rounded-lg flex items-center justify-center text-gray-600 text-sm bg-black/20">
-            <i class="fas fa-map-marked-alt text-3xl mr-3 opacity-30"></i> Mapa interativo
-          </div>
+          <div class="h-48 rounded-xl flex items-center justify-center text-gray-600 text-sm bg-black/20 border border-white/5"><i class="fas fa-map-marked-alt text-3xl mr-3 opacity-30"></i> Mapa</div>
         </div>
-        <div class="glass p-5">
+        <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-purple-400"></i> Plataformas</h3>
           <canvas id="platformChart" height="180"></canvas>
         </div>
-        <div class="glass p-5">
+        <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-tags text-amber-400"></i> Preços</h3>
           <canvas id="priceChart" height="180"></canvas>
         </div>
@@ -148,37 +139,20 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
 
     <div id="tab-cursos" class="tab-content hidden tab-enter">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-graduation-cap mr-2"></i>Gerenciar Cursos</span></h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-graduation-cap mr-2"></i>Gerenciar Cursos</span></h1>
         <span class="text-xs text-gray-600">{{ cursos|length }} cursos</span>
       </div>
       <div class="glass overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
-            <thead>
-              <tr class="border-b border-white/5 text-gray-500 text-left">
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider">ID</th>
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nome</th>
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider hidden sm:table-cell">Plataforma</th>
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider">Preco</th>
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nivel</th>
-                <th class="p-3 font-medium text-[11px] uppercase tracking-wider">Cliques</th>
-              </tr>
-            </thead>
+            <thead><tr class="border-b border-white/5 text-gray-500 text-left"><th class="p-3 font-medium text-[11px] uppercase tracking-wider">ID</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nome</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider hidden sm:table-cell">Plataforma</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Preco</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nivel</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Cliques</th></tr></thead>
             <tbody>
               {% for curso in cursos %}
-              <tr class="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+              <tr class="border-b border-white/5 hover:bg-white/[0.015] transition-colors">
                 <td class="p-3 text-gray-500 font-mono text-xs">#{{ curso.id }}</td>
                 <td class="p-3 font-medium max-w-xs truncate text-white">{{ curso.nome[:60] }}</td>
                 <td class="p-3 text-gray-400 hidden sm:table-cell">{{ curso.plataforma or '-' }}</td>
-                <td class="p-3">
-                  {% if curso.preco_tipo == 'gratuito' %}
-                    <span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold">Grátis</span>
-                  {% elif curso.preco_tipo == 'barato' %}
-                    <span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold">Barato</span>
-                  {% else %}
-                    <span class="badge-pago px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pago</span>
-                  {% endif %}
-                </td>
+                <td class="p-3">{% if curso.preco_tipo == 'gratuito' %}<span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold">Grátis</span>{% elif curso.preco_tipo == 'barato' %}<span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold">Barato</span>{% else %}<span class="badge-pago px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pago</span>{% endif %}</td>
                 <td class="p-3 text-gray-400 text-xs">{{ curso.nivel or '-' }}</td>
                 <td class="p-3 tabular-nums font-bold text-cyan-400">{{ curso.cliques }}</td>
               </tr>
@@ -191,158 +165,54 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
 
     <div id="tab-ips" class="tab-content hidden tab-enter">
       <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-shield-halved mr-2"></i>IPs Banidos</span></h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-shield-halved mr-2"></i>IPs Banidos</span></h1>
         <span class="text-xs text-gray-600">{{ bans|length }} bloqueados</span>
       </div>
-      <div class="glass p-5">
+      <div class="glass p-4 sm:p-5">
         {% if bans %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
           {% for ban in bans %}
-          <div class="flex items-center gap-3 py-2.5 px-3 rounded-lg bg-red-500/[0.02] border border-red-500/10 hover:bg-red-500/5 transition-colors">
-            <i class="fas fa-skull text-red-500/40 text-xs"></i>
-            <span class="font-mono text-sm text-gray-300">{{ ban.ip }}</span>
-          </div>
+          <div class="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-red-500/[0.02] border border-red-500/10 hover:bg-red-500/5 transition-colors"><i class="fas fa-skull text-red-500/40 text-xs"></i><span class="font-mono text-sm text-gray-300">{{ ban.ip }}</span></div>
           {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-12">
-          <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4"><i class="fas fa-shield-halved text-3xl text-emerald-400"></i></div>
-          <p class="text-gray-500 font-medium">Nenhum IP banido</p>
-          <p class="text-gray-600 text-xs mt-1">Sistema seguro</p>
-        </div>
+        <div class="text-center py-12"><div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4"><i class="fas fa-shield-halved text-3xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum IP banido</p><p class="text-gray-600 text-xs mt-1">Sistema seguro</p></div>
         {% endif %}
       </div>
     </div>
 
     <div id="tab-terminal" class="tab-content hidden tab-enter">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent"><i class="fas fa-terminal mr-2"></i>Terminal</span></h1>
-      </div>
-      <div class="terminal rounded-2xl overflow-hidden border border-green-900/30 shadow-lg shadow-green-900/10">
-        <div class="flex items-center gap-2 px-4 py-2.5 bg-green-900/20 border-b border-green-900/30">
-          <span class="w-3 h-3 rounded-full bg-red-500/60"></span>
-          <span class="w-3 h-3 rounded-full bg-yellow-500/60"></span>
-          <span class="w-3 h-3 rounded-full bg-green-500/60"></span>
-          <span class="text-xs text-green-700 ml-2 font-medium">root@radar:~</span>
-        </div>
-        <div class="p-4 flex flex-col h-96">
-          <div id="terminalOutput" class="flex-1 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap"></div>
-          <div class="flex items-center gap-2 mt-2 pt-2 border-t border-green-900/30">
-            <span class="text-green-500 text-sm font-bold">$</span>
-            <input type="text" id="terminalInput" class="terminal-input text-sm" placeholder="Digite 'help' para comandos..." autofocus>
-          </div>
-        </div>
+      <div class="flex items-center justify-between mb-6"><h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-green-300 to-green-500 bg-clip-text text-transparent"><i class="fas fa-terminal mr-2"></i>Terminal</span></h1></div>
+      <div class="terminal overflow-hidden border border-green-900/30 shadow-lg shadow-green-900/10">
+        <div class="flex items-center gap-2 px-4 py-2.5 bg-green-900/20 border-b border-green-900/30"><span class="w-3 h-3 rounded-full bg-red-500/60"></span><span class="w-3 h-3 rounded-full bg-yellow-500/60"></span><span class="w-3 h-3 rounded-full bg-green-500/60"></span><span class="text-xs text-green-700 ml-2 font-medium">root@radar:~</span></div>
+        <div class="p-4 flex flex-col h-96"><div id="terminalOutput" class="flex-1 overflow-y-auto text-sm leading-relaxed whitespace-pre-wrap"></div><div class="flex items-center gap-2 mt-2 pt-2 border-t border-green-900/30"><span class="text-green-500 text-sm font-bold">$</span><input type="text" id="terminalInput" class="terminal-input text-sm" placeholder="Digite 'help' para comandos..." autofocus></div></div>
       </div>
     </div>
 
     <div id="tab-seguranca" class="tab-content hidden tab-enter">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 via-orange-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-lock mr-2"></i>Eventos de Seguranca</span></h1>
-        <button onclick="carregarSeguranca()" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-gray-400 transition flex items-center gap-1.5 border border-white/5 hover:border-white/10 btn-press"><i class="fas fa-sync-alt"></i> Atualizar</button>
-      </div>
-      <div class="glass p-5">
-        <div id="securityLogs" class="text-sm font-mono space-y-1 max-h-96 overflow-y-auto"></div>
-      </div>
+      <div class="flex items-center justify-between mb-6"><h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 via-orange-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-lock mr-2"></i>Eventos de Seguranca</span></h1><button onclick="carregarSeguranca()" class="btn btn-ghost"><i class="fas fa-sync-alt"></i> Atualizar</button></div>
+      <div class="glass p-4 sm:p-5"><div id="securityLogs" class="text-sm font-mono space-y-1 max-h-96 overflow-y-auto"></div></div>
     </div>
   </div>
 </div>
 
 <script>
-function showTab(name) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-  document.getElementById('tab-'+name).classList.remove('hidden');
-  document.querySelectorAll('.sidebar-link').forEach(t => {
-    t.classList.remove('active');
-    t.style.background = '';
-    t.style.color = '#9ca3af';
-    const icon = t.querySelector('i');
-    if(icon && !icon.classList.contains('fa-arrow-left') && !icon.classList.contains('fa-sign-out-alt')) icon.style.color = '';
-  });
-  const link = document.querySelector(`.sidebar-link[data-tab="${name}"]`);
-  if(link) {
-    link.classList.add('active');
-    link.style.background = 'linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';
-    link.style.color = '#06b6d4';
-    const icon = link.querySelector('i');
-    if(icon) icon.style.color = '#06b6d4';
-  }
+function showTab(n){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+  document.getElementById('tab-'+n).classList.remove('hidden');
+  document.querySelectorAll('.sidebar-link').forEach(t=>{t.classList.remove('active');t.style.background='';t.style.color='#9ca3af';const i=t.querySelector('i');if(i&&!i.classList.contains('fa-arrow-left')&&!i.classList.contains('fa-sign-out-alt'))i.style.color=''});
+  const l=document.querySelector(`.sidebar-link[data-tab="${n}"]`);
+  if(l){l.classList.add('active');l.style.background='linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';l.style.color='#06b6d4';const i=l.querySelector('i');if(i)i.style.color='#06b6d4'}
 }
-
-const trafficCtx = document.getElementById('trafficChart')?.getContext('2d');
-let trafficChart;
-if(trafficCtx) {
-  const grad = trafficCtx.createLinearGradient(0,0,0,200);
-  grad.addColorStop(0,'rgba(6,182,212,0.25)');
-  grad.addColorStop(0.5,'rgba(6,182,212,0.08)');
-  grad.addColorStop(1,'rgba(6,182,212,0)');
-  trafficChart = new Chart(trafficCtx, {
-    type: 'line',
-    data: { labels: Array(20).fill(''), datasets: [{ label: 'Acessos', data: Array(20).fill(0), borderColor: '#06b6d4', backgroundColor: grad, fill: true, tension: .4, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#22d3ee', pointHoverBorderColor: '#fff', borderWidth: 2 }] },
-    options: { responsive: true, interaction: { intersect: false, mode: 'index' }, plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: '#0a0f16', titleColor: '#e5e7eb', bodyColor: '#06b6d4', borderColor: 'rgba(6,182,212,.2)', borderWidth: 1, cornerRadius: 8, padding: 10 } }, scales: { x: { display: false, grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#4b5563', font: { size: 10 }, maxTicksLimit: 5 } } }, animation: { duration: 800, easing: 'easeOutQuart' } }
-  });
-}
-
-const platCtx = document.getElementById('platformChart')?.getContext('2d');
-if(platCtx) {
-  const platData = {};
-  {% for curso in cursos %}
-    const p = '{{ curso.plataforma or "Outros" }}';
-    platData[p] = (platData[p]||0)+1;
-  {% endfor %}
-  const labels = Object.keys(platData).slice(0,6);
-  const data = labels.map(l=>platData[l]);
-  const colors = ['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];
-  new Chart(platCtx, { type: 'doughnut', data: { labels, datasets: [{ data, backgroundColor: colors.slice(0,labels.length), borderWidth: 0, hoverOffset: 8 }] }, options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7280', font: { size: 9 }, padding: 8, usePointStyle: true, pointStyleWidth: 6 } } }, animation: { animateRotate: true, duration: 1200 } } });
-}
-
-const priceCtx = document.getElementById('priceChart')?.getContext('2d');
-if(priceCtx) {
-  let g=0,b=0,p=0;
-  {% for curso in cursos %}
-    {% if curso.preco_tipo == 'gratuito' %}g++{% elif curso.preco_tipo == 'barato' %}b++{% else %}p++{% endif %}
-  {% endfor %}
-  new Chart(priceCtx, { type: 'doughnut', data: { labels: ['Gratis','Barato','Pago'], datasets: [{ data: [g,b,p], backgroundColor: ['#10b981','#f59e0b','#06b6d4'], borderWidth: 0, hoverOffset: 8 }] }, options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#6b7280', font: { size: 9 }, padding: 8, usePointStyle: true, pointStyleWidth: 6 } } }, animation: { animateRotate: true, duration: 1200 } } });
-}
-
-const socket = io();
-socket.on('sys_stats', () => { const el = document.getElementById('liveUsers'); if(el) el.textContent = Math.floor(Math.random()*15+3); });
-socket.on('novo_clique', () => {
-  if(trafficChart) { const d = trafficChart.data.datasets[0].data; d.push(1); if(d.length>20) d.shift(); trafficChart.update('none'); }
-});
-
-function carregarSeguranca() {
-  fetch('/api/security/events').then(r=>r.json()).then(events=>{
-    const container = document.getElementById('securityLogs');
-    if(!container) return;
-    if(events.length===0) {
-      container.innerHTML = '<div class="text-center py-12"><div class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento de seguranca</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';
-      return;
-    }
-    container.innerHTML = events.map(e => {
-      const color = e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400';
-      const icon = e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';
-      return `<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${icon} text-[10px] mt-0.5 ${color}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${color} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`;
-    }).join('');
-  });
-}
-carregarSeguranca();
-
-const terminalOutput = document.getElementById('terminalOutput');
-const terminalInput = document.getElementById('terminalInput');
-terminalOutput.textContent = 'Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos disponiveis.\n\n';
-terminalInput.addEventListener('keydown', function(e) {
-  if(e.key==='Enter') {
-    const cmd = this.value.trim();
-    this.value = '';
-    terminalOutput.textContent += `root@radar:~$ ${cmd}\n`;
-    if(cmd==='help') { terminalOutput.textContent += 'Comandos: status, analytics, logs, backup create, crawler run, links check, help\n'; }
-    else if(cmd) {
-      fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:cmd})})
-        .then(r=>r.json()).then(d=>{terminalOutput.textContent+=(d.output||'OK')+'\n';terminalOutput.scrollTop=terminalOutput.scrollHeight;}).catch(()=>{});
-    }
-    terminalOutput.scrollTop = terminalOutput.scrollHeight;
-  }
-});
+const tCtx=document.getElementById('trafficChart')?.getContext('2d');let tChart;
+if(tCtx){const g=tCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(6,182,212,0.25)');g.addColorStop(.5,'rgba(6,182,212,0.08)');g.addColorStop(1,'rgba(6,182,212,0)');tChart=new Chart(tCtx,{type:'line',data:{labels:Array(20).fill(''),datasets:[{label:'Acessos',data:Array(20).fill(0),borderColor:'#06b6d4',backgroundColor:g,fill:!0,tension:.4,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#22d3ee',pointHoverBorderColor:'#fff',borderWidth:2}]},options:{responsive:!0,interaction:{intersect:!1,mode:'index'},plugins:{legend:{display:!1},tooltip:{enabled:!0,backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:10}},scales:{x:{display:!1,grid:{display:!1}},y:{beginAtZero:!0,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:10},maxTicksLimit:5}}},animation:{duration:800,easing:'easeOutQuart'}}})}
+const pCtx=document.getElementById('platformChart')?.getContext('2d');
+if(pCtx){const d={};{% for curso in cursos %}const p='{{ curso.plataforma or "Outros" }}';d[p]=(d[p]||0)+1;{% endfor %}const l=Object.keys(d).slice(0,6),v=l.map(k=>d[k]),c=['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];new Chart(pCtx,{type:'doughnut',data:{labels:l,datasets:[{data:v,backgroundColor:c.slice(0,l.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
+const rCtx=document.getElementById('priceChart')?.getContext('2d');
+if(rCtx){let g=0,b=0,p=0;{% for curso in cursos %}{% if curso.preco_tipo == 'gratuito' %}g++{% elif curso.preco_tipo == 'barato' %}b++{% else %}p++{% endif %}{% endfor %};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[g,b,p],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
+const socket=io();socket.on('sys_stats',()=>{const e=document.getElementById('liveUsers');if(e)e.textContent=Math.floor(Math.random()*15+3)});socket.on('novo_clique',()=>{if(tChart){const d=tChart.data.datasets[0].data;d.push(1);if(d.length>20)d.shift();tChart.update('none')}});
+function carregarSeguranca(){fetch('/api/security/events').then(r=>r.json()).then(events=>{const c=document.getElementById('securityLogs');if(!c)return;if(events.length===0){c.innerHTML='<div class="text-center py-12"><div class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';return}c.innerHTML=events.map(e=>{const cl=e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400',ic=e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';return`<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${ic} text-[10px] mt-0.5 ${cl}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${cl} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`}).join('')})};carregarSeguranca();
+const to=document.getElementById('terminalOutput'),ti=document.getElementById('terminalInput');to.textContent='Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos.\n\n';ti.addEventListener('keydown',function(e){if(e.key==='Enter'){const c=this.value.trim();this.value='';to.textContent+=`root@radar:~$ ${c}\n`;if(c==='help'){to.textContent+='Comandos: status, analytics, logs, backup create, crawler run, links check, help\n'}else if(c){fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:c})}).then(r=>r.json()).then(d=>{to.textContent+=(d.output||'OK')+'\n';to.scrollTop=to.scrollHeight}).catch(()=>{})}to.scrollTop=to.scrollHeight}});
 </script>
 </body>
 </html>
