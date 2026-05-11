@@ -66,14 +66,18 @@ def init_oauth(app):
         app.logger.warning("Google OAuth não configurado. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET.")
         return None
 
-    google = oauth.register(
-        name="google",
-        client_id=client_id,
-        client_secret=client_secret,
-        server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-        client_kwargs={"scope": "openid email profile"},
-    )
-    return google
+    try:
+        google = oauth.register(
+            name="google",
+            client_id=client_id,
+            client_secret=client_secret,
+            server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+            client_kwargs={"scope": "openid email profile"},
+        )
+        return google
+    except Exception as e:
+        app.logger.warning(f"Falha ao registrar Google OAuth: {e}")
+        return None
 
 
 def _csrf_valid():
@@ -467,8 +471,12 @@ def public_login():
 def public_google_login():
     if not hasattr(oauth, "google"):
         return render_template("site_login.html", google_ready=False, google_login_url="#", erro="Google OAuth não configurado.")
-    redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
+    try:
+        redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
+        return oauth.google.authorize_redirect(redirect_uri)
+    except Exception as e:
+        current_app.logger.warning(f"Erro no redirect Google OAuth: {e}")
+        return render_template("site_login.html", google_ready=False, google_login_url="#", erro="Erro ao conectar com Google.")
 
 
 @admin_bp.route("/authorize")
