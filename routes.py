@@ -469,7 +469,13 @@ def public_login():
 
 @admin_bp.route("/login/google")
 def public_google_login():
-    return redirect(url_for("admin_bp.index"))
+    if not hasattr(oauth, "google"):
+        return redirect(url_for("admin_bp.index"))
+    try:
+        redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
+        return oauth.google.authorize_redirect(redirect_uri)
+    except Exception:
+        return redirect(url_for("admin_bp.index"))
 
 
 @admin_bp.route("/authorize")
