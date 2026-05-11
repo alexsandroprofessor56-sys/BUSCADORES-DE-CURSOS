@@ -471,19 +471,19 @@ def public_login():
 
 @admin_bp.route("/login/google")
 def public_google_login():
-    if not hasattr(oauth, "google"):
-        return redirect(url_for("admin_bp.index"))
+    if "google" not in getattr(oauth, "_clients", {}):
+        return redirect("/")
     try:
         redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
         return oauth.google.authorize_redirect(redirect_uri)
     except Exception:
-        return redirect(url_for("admin_bp.index"))
+        return redirect("/")
 
 
 @admin_bp.route("/authorize")
 def public_google_authorize():
-    if not hasattr(oauth, "google"):
-        return redirect(url_for("admin_bp.public_login"))
+    if "google" not in getattr(oauth, "_clients", {}):
+        return redirect("/")
     try:
         token = oauth.google.authorize_access_token()
         user_info = token.get("userinfo")
