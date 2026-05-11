@@ -84,9 +84,6 @@ def _csrf_valid():
 
 @admin_bp.before_app_request
 def security_gate():
-    if request.path == "/" or request.path.startswith("/c/"):
-        if not _site_logged_in():
-            return redirect(url_for("admin_bp.public_login"))
     if request.endpoint == "static" or request.path.startswith("/socket.io/"):
         return None
     ip = get_client_ip(request)
