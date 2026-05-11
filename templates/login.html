@@ -1,44 +1,57 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Radar Elite</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body { font-family: 'Inter', sans-serif; background: #05080c; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+    @keyframes orbFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+    .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+    .orb:nth-child(1) { width: 400px; height: 400px; background: #06b6d4; top: -150px; left: -100px; animation: orbFloat 8s ease-in-out infinite; opacity: .08; }
+    .orb:nth-child(2) { width: 300px; height: 300px; background: #f59e0b; bottom: -100px; right: -80px; animation: orbFloat 10s ease-in-out infinite reverse; opacity: .06; }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-6">
+  <div class="orb"></div><div class="orb"></div>
   <div class="w-full max-w-sm">
     <div class="text-center mb-8">
-      <div class="w-12 h-12 rounded-xl bg-cyan-500 flex items-center justify-center text-black font-bold text-lg mx-auto mb-3">RE</div>
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-cyan-600 flex items-center justify-center text-black font-black text-xl mx-auto mb-4 shadow-lg shadow-cyan-500/20">RE</div>
       <h1 class="text-2xl font-bold text-white">Painel Admin</h1>
-      <p class="text-gray-500 text-sm">Radar Elite</p>
+      <p class="text-gray-500 text-sm mt-1">Radar Elite</p>
     </div>
-    <form method="POST" class="bg-[#0a0f16] border border-white/10 rounded-2xl p-6 space-y-4">
+    <form method="POST" class="glass rounded-2xl p-6 space-y-4">
       {% if erro %}
-      <div class="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-lg">{{ erro }}</div>
+      <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl"><i class="fas fa-exclamation-circle"></i> {{ erro }}</div>
       {% endif %}
       <div>
-        <label class="text-xs text-gray-500 uppercase tracking-wider">Usuário</label>
+        <label class="text-xs text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1"><i class="fas fa-user"></i> Usuário</label>
         <input type="text" name="username" required
-          class="w-full mt-1 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition">
+          class="w-full mt-1.5 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition placeholder-gray-600"
+          placeholder="admin">
       </div>
       <div>
-        <label class="text-xs text-gray-500 uppercase tracking-wider">Senha</label>
+        <label class="text-xs text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1"><i class="fas fa-lock"></i> Senha</label>
         <input type="password" name="password" required
-          class="w-full mt-1 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition">
+          class="w-full mt-1.5 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition placeholder-gray-600"
+          placeholder="********">
       </div>
       <div id="otpField" style="display:none">
-        <label class="text-xs text-gray-500 uppercase tracking-wider">Código 2FA</label>
+        <label class="text-xs text-gray-500 uppercase tracking-wider font-semibold flex items-center gap-1"><i class="fas fa-shield-halved"></i> Código 2FA</label>
         <input type="text" name="otp_code" placeholder="000000"
-          class="w-full mt-1 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition">
+          class="w-full mt-1.5 px-4 py-3 bg-[#05080c] border border-white/10 rounded-xl text-white outline-none focus:border-cyan-500 transition text-center tracking-widest placeholder-gray-600">
       </div>
-      <button type="submit" class="w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-black font-bold rounded-xl transition">
-        Entrar
+      <button type="submit" class="w-full py-3 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+        <i class="fas fa-arrow-right"></i> Entrar
       </button>
     </form>
   </div>
+  <script>
+    fetch('/api/check_2fa').then(r=>r.json()).then(d=>{ if(d.otp_enabled) document.getElementById('otpField').style.display='block'; });
+  </script>
 </body>
 </html>

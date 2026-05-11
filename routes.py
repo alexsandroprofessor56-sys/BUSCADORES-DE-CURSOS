@@ -51,15 +51,6 @@ def _site_logged_in():
     return bool(session.get("site_user_email"))
 
 
-def _public_login_required():
-    public_paths = {"/", "/c"}
-    if request.endpoint in {"public_login", "public_google_login", "public_google_authorize", "public_logout", "static"}:
-        return False
-    if request.path == "/" or request.path.startswith("/c/"):
-        return not _site_logged_in()
-    return False
-
-
 def init_oauth(app):
     client_id, client_secret = _google_config()
     if not client_id or not client_secret:
@@ -471,7 +462,11 @@ def public_login():
 
 @admin_bp.route("/login/google")
 def public_google_login():
-    return "OK", 200
+    client_id, client_secret = _google_config()
+    if not client_id or not client_secret:
+        return redirect(url_for("admin_bp.public_login"))
+    redirect_uri = url_for("admin_bp.public_google_authorize", _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
 
 
 @admin_bp.route("/authorize")
@@ -571,6 +566,20 @@ def redirecionar_curso(id):
         current_app.logger.exception("Falha ao registrar acesso de curso")
     return redirect(curso.link_afiliado)
 
+
+@admin_bp.route("/api/favoritar/<int:id>", methods=["POST"])
+def api_favoritar(id):
+    if not _site_logged_in():
+        return jsonify({"success": False, "error": "login_required"}), 401
+    curso = db.session.get(Curso, id)
+    if not curso:
+        return jsonify({"success": False, "error": "not_found"}), 404
+    return jsonify({"success": True})
+
+@admin_bp.route("/api/check_2fa")
+def api_check_2fa():
+    user = User.query.first()
+    return jsonify({"otp_enabled": bool(user and user.otp_enabled)})
 
 @admin_bp.route("/api/analytics")
 @login_required

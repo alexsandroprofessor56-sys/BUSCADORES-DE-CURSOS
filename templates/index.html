@@ -1,168 +1,146 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Radar Elite - Buscador de Cursos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            dark: { 900: '#05080c', 800: '#0a0f16', 700: '#111827', 600: '#1f2937' },
-            cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2' },
-            gold: { 400: '#facc15', 500: '#eab308' }
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body { font-family: 'Inter', sans-serif; background: #05080c; }
-    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; transition: all .3s; }
     .glass:hover { border-color: rgba(34,211,238,0.2); }
-    .gradient-text { background: linear-gradient(135deg, #22d3ee, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .card-gradient { background: linear-gradient(145deg, #0a0f16, #111827); }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #05080c; }
-    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
-    @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 20px rgba(6,182,212,0.1); } 50% { box-shadow: 0 0 40px rgba(6,182,212,0.3); } }
-    .hero-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #05080c; } ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 3px; }
+    @keyframes orbFloat { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.05); } }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 20px rgba(6,182,212,0.1); } 50% { box-shadow: 0 0 50px rgba(6,182,212,0.25); } }
+    @keyframes shimmerText { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+    .orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+    .orb-1 { width: 500px; height: 500px; background: #06b6d4; top: -200px; left: -100px; opacity: .07; animation: orbFloat 12s ease-in-out infinite; }
+    .orb-2 { width: 400px; height: 400px; background: #f59e0b; bottom: -150px; right: -100px; opacity: .05; animation: orbFloat 15s ease-in-out infinite reverse; }
+    .hero-glow { animation: pulseGlow 3s ease-in-out infinite; }
     .search-bar:focus { box-shadow: 0 0 0 2px rgba(6,182,212,0.3); }
-    .fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
-    @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
-    .card-enter { animation: cardIn 0.4s ease forwards; opacity: 0; transform: translateY(20px); }
-    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
-    .badge-free { background: linear-gradient(135deg, #059669, #10b981); }
-    .badge-paid { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    .card-enter { animation: fadeSlideUp .45s ease forwards; opacity: 0; }
+    .badge-gratis { background: linear-gradient(135deg, rgba(16,185,129,.2), rgba(16,185,129,.05)); border: 1px solid rgba(16,185,129,.2); color: #34d399; }
+    .badge-barato { background: linear-gradient(135deg, rgba(245,158,11,.2), rgba(245,158,11,.05)); border: 1px solid rgba(245,158,11,.2); color: #fbbf24; }
+    .badge-pago { background: linear-gradient(135deg, rgba(6,182,212,.2), rgba(6,182,212,.05)); border: 1px solid rgba(6,182,212,.2); color: #22d3ee; }
+    .badge-nivel { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #9ca3af; }
+    .gradient-text-hero { background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shimmerText 4s linear infinite; }
   </style>
 </head>
 <body class="text-gray-200 min-h-screen">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
 
-  <!-- NAV -->
   <nav class="border-b border-white/5 glass sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-      <a href="/" class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-black font-bold text-sm">RE</div>
-        <span class="text-lg font-bold tracking-tight">Radar<span class="text-cyan-400">Elite</span></span>
+      <a href="/" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20">RE</div>
+        <span class="text-lg font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
       </a>
       <div class="flex items-center gap-4 text-sm">
         {% if session.site_user_email %}
-          <span class="text-gray-500">{{ session.site_user_name or session.site_user_email }}</span>
-          <a href="/sair" class="hover:text-red-400 transition">Sair</a>
+          <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-user text-xs text-cyan-400"></i> {{ session.site_user_name or session.site_user_email }}</span>
+          <a href="/sair" class="hover:text-red-400 transition flex items-center gap-1"><i class="fas fa-sign-out-alt text-xs"></i> Sair</a>
         {% else %}
-          <a href="/login" class="hover:text-cyan-400 transition">Entrar</a>
+          <a href="/login" class="px-4 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition text-sm font-medium flex items-center gap-2"><i class="fas fa-google"></i> Entrar</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- HERO / SEARCH -->
-  <section class="max-w-4xl mx-auto px-6 pt-16 pb-10 text-center">
-    <div class="inline-block px-4 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-4">
-      🔥 {{ pagination.total }} cursos gratuitos encontrados
+  <section class="relative z-10 max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold mb-6">
+      <i class="fas fa-fire text-orange-400"></i> {{ pagination.total }} cursos gratuitos encontrados
     </div>
-    <h1 class="text-5xl md:text-6xl font-black text-white mb-4 tracking-tight">
-      Busque o <span class="gradient-text">Curso Ideal</span>
+    <h1 class="text-5xl md:text-7xl font-black text-white mb-4 tracking-tight leading-tight">
+      Busque o <span class="gradient-text-hero">Curso Ideal</span>
     </h1>
-    <p class="text-gray-500 text-lg mb-8">Cursos gratuitos com certificado das melhores plataformas</p>
+    <p class="text-gray-500 text-lg mb-10 max-w-2xl mx-auto">Cursos gratuitos com certificado das melhores plataformas</p>
     <form method="GET" action="/" class="max-w-2xl mx-auto">
-      <div class="relative">
+      <div class="relative hero-glow rounded-2xl">
         <input type="text" name="q" value="{{ q }}"
-          class="search-bar w-full px-6 py-4 rounded-2xl bg-dark-700 border border-white/10 text-white text-lg
-                 placeholder-gray-600 outline-none transition-all"
+          class="search-bar w-full px-6 py-4 rounded-2xl bg-[#0a0f16] border border-white/10 text-white text-lg placeholder-gray-600 outline-none transition-all pr-36"
           placeholder="Pesquise por curso, plataforma ou área...">
-        <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 px-6 py-2 bg-cyan-500
-                 hover:bg-cyan-600 text-black font-bold rounded-xl transition">
-          Buscar
+        <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-2">
+          <i class="fas fa-search text-sm"></i> Buscar
         </button>
       </div>
     </form>
   </section>
 
-  <!-- FILTERS -->
-  <section class="max-w-7xl mx-auto px-6 pb-6">
+  <section class="relative z-10 max-w-7xl mx-auto px-6 pb-8">
     <div class="flex flex-wrap gap-2 items-center justify-center">
-      <a href="/" class="px-4 py-1.5 rounded-full text-sm font-medium transition
-        {% if not area and not preco and not nivel %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        Todos
+      <a href="/" class="px-4 py-1.5 rounded-full text-sm font-medium transition flex items-center gap-1 {% if not area and not preco and not nivel %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-th-large text-xs"></i> Todos
       </a>
       {% for a in areas[:10] %}
       <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-1.5 rounded-full text-sm font-medium transition
-        {% if area == a %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
+        class="px-4 py-1.5 rounded-full text-sm font-medium transition {% if area == a %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
         {{ a }}
       </a>
       {% endfor %}
     </div>
     <div class="flex flex-wrap gap-2 items-center justify-center mt-3">
       <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="px-3 py-1 rounded-full text-xs font-medium transition
-        {% if preco == 'gratuito' %}bg-green-600 text-white{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        ✅ Gratuito
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-check-circle text-[10px]"></i> Gratuito
       </a>
       <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="px-3 py-1 rounded-full text-xs font-medium transition
-        {% if preco == 'barato' %}bg-yellow-600 text-white{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        💰 Barato
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if preco == 'barato' %}badge-barato font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-tag text-[10px]"></i> Barato
       </a>
       <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1 rounded-full text-xs font-medium transition
-        {% if nivel == 'iniciante' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        🌱 Iniciante
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'iniciante' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-seedling text-[10px]"></i> Iniciante
       </a>
       <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1 rounded-full text-xs font-medium transition
-        {% if nivel == 'intermediario' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        📈 Intermediário
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'intermediario' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-chart-line text-[10px]"></i> Intermediário
       </a>
       <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="px-3 py-1 rounded-full text-xs font-medium transition
-        {% if nivel == 'avancado' %}bg-cyan-500 text-black{% else %}bg-dark-700 text-gray-400 hover:text-white{% endif %}">
-        🚀 Avançado
+        class="px-3 py-1.5 rounded-full text-xs font-medium transition flex items-center gap-1 {% if nivel == 'avancado' %}bg-cyan-500 text-black font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        <i class="fas fa-rocket text-[10px]"></i> Avançado
       </a>
     </div>
   </section>
 
-  <!-- COURSES GRID -->
-  <section class="max-w-7xl mx-auto px-6 pb-12">
+  <section class="relative z-10 max-w-7xl mx-auto px-6 pb-16">
     {% if cursos %}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {% for curso in cursos %}
-      <div class="card-gradient rounded-2xl border border-white/5 p-5 hover:border-cyan-500/30 transition-all duration-300
-                  hover:translate-y-[-2px] card-enter" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+      <div class="card-gradient rounded-2xl border border-white/5 p-5 hover:border-cyan-500/30 transition-all duration-300 hover:-translate-y-1 card-enter" style="animation-delay: {{ loop.index0 * 0.04 }}s">
         <div class="flex items-start gap-3 mb-3">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold uppercase flex-shrink-0"
-               style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold uppercase flex-shrink-0 shadow-lg" style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
             {{ curso.logo_initials or 'RE' }}
           </div>
           <div class="min-w-0 flex-1">
             <h3 class="font-semibold text-white text-sm leading-tight mb-1 line-clamp-2">{{ curso.nome }}</h3>
-            <p class="text-xs text-gray-500">{{ curso.plataforma or 'Plataforma' }}</p>
+            <p class="text-xs text-gray-500 flex items-center gap-1"><i class="fas fa-building text-[10px]"></i> {{ curso.plataforma or 'Plataforma' }}</p>
           </div>
         </div>
 
-        <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ curso.descricao[:120] }}...</p>
+        <p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ (curso.descricao or '')[:120] }}{% if curso.descricao and curso.descricao|length > 120 %}...{% endif %}</p>
 
         <div class="flex flex-wrap gap-1.5 mb-3">
           {% if curso.preco_tipo == 'gratuito' %}
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold badge-free text-white">Grátis</span>
+            <span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1"><i class="fas fa-check-circle"></i> Grátis</span>
           {% elif curso.preco_tipo == 'barato' %}
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold badge-paid text-white">Barato</span>
+            <span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1"><i class="fas fa-tag"></i> Barato</span>
           {% endif %}
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-dark-600 text-gray-400">{{ curso.nivel }}</span>
-          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-dark-600 text-green-400">✅ Certificado</span>
+          {% if curso.nivel %}
+          <span class="badge-nivel px-2.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1"><i class="fas fa-signal"></i> {{ curso.nivel }}</span>
+          {% endif %}
+          <span class="badge-nivel px-2.5 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1"><i class="fas fa-certificate"></i> Certificado</span>
         </div>
 
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-600">{{ curso.cliques or 0 }} acessos</span>
+        <div class="flex items-center justify-between pt-2 border-t border-white/5">
+          <span class="text-xs text-gray-600 flex items-center gap-1"><i class="fas fa-eye"></i> {{ curso.cliques or 0 }} acessos</span>
           <div class="flex gap-2">
-            <button onclick="favoritar({{ curso.id }})" class="text-gray-600 hover:text-yellow-400 transition text-sm">★</button>
-            <a href="/c/{{ curso.id }}" target="_blank"
-              class="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-black text-xs font-bold rounded-lg transition">
-              ACESSAR
+            <button onclick="favoritar({{ curso.id }})" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-yellow-500/20 text-gray-500 hover:text-yellow-400 transition flex items-center justify-center" title="Favoritar"><i class="fas fa-star text-xs"></i></button>
+            <a href="/c/{{ curso.id }}" target="_blank" class="px-4 py-1.5 bg-gradient-to-r from-cyan-400 to-cyan-600 hover:from-cyan-300 hover:to-cyan-500 text-black text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 flex items-center gap-1.5">
+              <i class="fas fa-external-link-alt text-[10px]"></i> ACESSAR
             </a>
           </div>
         </div>
@@ -170,40 +148,51 @@
       {% endfor %}
     </div>
 
-    <!-- PAGINATION -->
-    <div class="flex justify-center mt-10 gap-2">
+    {% if pagination.pages > 1 %}
+    <div class="flex justify-center mt-12 gap-2">
       {% if pagination.has_prev %}
       <a href="?page={{ pagination.prev_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-sm transition">← Anterior</a>
+        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1"><i class="fas fa-chevron-left text-xs"></i> Anterior</a>
       {% endif %}
       {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
         <a href="?page={{ p }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-          class="px-4 py-2 rounded-xl text-sm transition
-          {% if p == pagination.page %}bg-cyan-500 text-black font-bold{% else %}bg-dark-700 hover:bg-dark-600{% endif %}">
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-medium transition {% if p == pagination.page %}bg-gradient-to-br from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30{% endif %}">
           {{ p }}
         </a>
         {% else %}
-        <span class="px-2 py-2 text-gray-600">...</span>
+        <span class="w-10 h-10 flex items-center justify-center text-gray-600">...</span>
         {% endif %}
       {% endfor %}
       {% if pagination.has_next %}
       <a href="?page={{ pagination.next_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-sm transition">Próxima →</a>
+        class="px-4 py-2.5 rounded-xl bg-[#0a0f16] border border-white/5 hover:border-cyan-500/30 text-sm transition flex items-center gap-1">Próxima <i class="fas fa-chevron-right text-xs"></i></a>
       {% endif %}
     </div>
+    {% endif %}
+
     {% else %}
     <div class="text-center py-20">
-      <p class="text-6xl mb-4">🔍</p>
-      <p class="text-gray-500 text-lg">Nenhum curso encontrado</p>
-      <a href="/" class="mt-4 inline-block px-6 py-2 bg-cyan-500 text-black rounded-xl font-bold">Limpar filtros</a>
+      <div class="w-20 h-20 rounded-3xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-6 border border-cyan-500/20">
+        <i class="fas fa-search text-3xl text-cyan-400"></i>
+      </div>
+      <p class="text-gray-400 text-xl font-medium mb-2">Nenhum curso encontrado</p>
+      <p class="text-gray-600 text-sm mb-6">Tente ajustar os filtros ou buscar por outro termo</p>
+      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:-translate-y-0.5">
+        <i class="fas fa-times"></i> Limpar filtros
+      </a>
     </div>
     {% endif %}
   </section>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-white/5 py-8 text-center text-gray-600 text-sm">
-    <p>Radar Elite © 2026 · Buscador de Cursos Gratuitos</p>
+  <footer class="relative z-10 border-t border-white/5 py-8 text-center">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <div class="w-6 h-6 rounded-md bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-[8px]">RE</div>
+        <span class="text-sm font-bold text-white">Radar<span class="text-cyan-400">Elite</span></span>
+      </div>
+      <p class="text-gray-600 text-xs">© 2026 · Buscador de Cursos Gratuitos com Certificado</p>
+    </div>
   </footer>
 
   <script>
@@ -211,8 +200,9 @@
       fetch('/api/favoritar/' + id, { method: 'POST' })
         .then(r => r.json())
         .then(d => { if(d.success) location.reload(); })
-        .catch(() => alert('Faça login para favoritar'));
+        .catch(() => {});
     }
+    document.querySelectorAll('.card-enter').forEach((el, i) => { el.style.animationDelay = (i * 0.04) + 's'; });
   </script>
 </body>
 </html>
