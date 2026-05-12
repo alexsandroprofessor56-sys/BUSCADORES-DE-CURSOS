@@ -108,8 +108,7 @@ def security_gate():
         abort(403)
 
     if is_honeypot_filled(request.form):
-        log_security_event(ip, "honeypot", "Honeypot preenchido - bot detectado", "critical", ua)
-        auto_ban(ip, "Honeypot preenchido por bot", ua)
+        log_security_event(ip, "honeypot", "Honeypot preenchido - bot detectado", "warning", ua)
         return "OK", 200
 
     if IPBanido.query.filter_by(ip=ip).first():
@@ -588,8 +587,8 @@ def admin_login():
         user_agent = request.headers.get("User-Agent", "")
 
         if is_honeypot_filled(request.form):
-            log_security_event(ip, "honeypot_login", "Bot detectado no login admin", "critical", user_agent)
-            return "OK", 200
+            log_security_event(ip, "honeypot_login", "Bot detectado no login admin", "warning", user_agent)
+            return render_template("login.html", erro="Credenciais invalidas.")
 
         limiter_ok = getattr(request, 'max_cost', None) is not None
         try:

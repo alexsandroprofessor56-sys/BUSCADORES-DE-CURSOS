@@ -137,6 +137,15 @@ def _ensure_schema():
 
 _ensure_schema()
 
+if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
+    with app.app_context():
+        from core.models import IPBanido
+        bans = IPBanido.query.all()
+        for b in bans:
+            db.session.delete(b)
+        db.session.commit()
+        app.logger.warning(f"EMERGENCY_UNBAN: {len(bans)} ban(s) removido(s)")
+
 with app.app_context():
     from core.models import User, Curso
     from services.crawler import seed_cursos, check_broken_links
