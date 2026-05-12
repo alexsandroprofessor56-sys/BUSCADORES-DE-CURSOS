@@ -658,3 +658,44 @@ def api_search():
 def api_recommendations():
     query = request.args.get("q", "")
     return jsonify(recommend_courses(query, limit=8))
+
+
+@admin_bp.route("/admin/crawler", methods=["GET", "POST"])
+@login_required
+def admin_crawler():
+    from services.crawler import seed_cursos, check_broken_links, crawl_free_courses
+
+    resultado = None
+    erro = None
+    acao = request.form.get("acao") if request.method == "POST" else request.args.get("acao")
+
+    if acao == "seed":
+        try:
+            qtd = int(request.form.get("quantidade", 200))
+            c = seed_cursos(qtd)
+            resultado = f"Seed concluido: {c} cursos adicionados"
+        except Exception as e:
+            erro = str(e)
+    elif acao == "check_links":
+        try:
+            lim = int(request.form.get("limite", 100))
+            checked, broken = check_broken_links(limite=lim, desativar=True)
+            resultado = f"Links verificados: {checked}, quebrados desativados: {broken}"
+        except Exception as e:
+            erro = str(e)
+    elif acao == "crawl":
+        try:
+            c = crawl_free_courses(limite=50)
+            resultado = f"Crawler encontrou {c} novos cursos"
+        except Exception as e:
+            erro = str(e)
+
+    from core.models import Curso
+    total_ativos = Curso.query.filter_by(ativo=True).count()
+    total_inativos = Curso.query.filter_by(ativo=False).count()
+    return render_template("admin_crawler.html",
+        resultado=resultado, erro=erro,
+        total_ativos=total_ativos,
+        total_inativos=total_inativos,
+        total=total_ativos + total_inativos,
+    )

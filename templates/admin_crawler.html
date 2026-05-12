@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crawler — Radar Elite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;background:#03060a;color:#e5e7eb;min-height:100vh}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
+    .card{background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.03);border-radius:16px;padding:24px;transition:all .3s}
+    .card:hover{border-color:rgba(6,182,212,.06);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-weight:700;font-size:13px;transition:all .3s;cursor:pointer;border:none}
+    .btn:active{transform:scale(.95)}
+    .btn-primary{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.1)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(6,182,212,.15)}
+    .btn-ghost{background:rgba(255,255,255,.02);color:#9ca3af;border:1px solid rgba(255,255,255,.04)}
+    .btn-ghost:hover{background:rgba(255,255,255,.04);color:#e5e7eb}
+    .stat{display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.03);border-radius:12px}
+    .stat-value{font-size:24px;font-weight:800;color:#fff}
+    .stat-label{font-size:12px;color:rgba(255,255,255,.2)}
+    .msg{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:20px}
+    .msg-success{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.1);color:#34d399}
+    .msg-error{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.1);color:#fca5a5}
+    input{width:100%;padding:12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:10px;color:#fff;font-size:13px;outline:none;transition:all .3s;font-family:'Inter',sans-serif}
+    input:focus{border-color:rgba(6,182,212,.12);box-shadow:0 0 0 2px rgba(6,182,212,.03)}
+    @media(max-width:640px){.card{padding:16px}.stat-value{font-size:20px}}
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="max-w-2xl mx-auto px-4 py-12" style="position:relative;z-index:1">
+    <div class="flex items-center gap-3 mb-8">
+      <a href="/admin/dashboard" class="w-8 h-8 rounded-lg bg-white/[.02] border border-white/[.04] flex items-center justify-center text-gray-500 hover:text-white transition-all">
+        <i class="fas fa-arrow-left" style="font-size:12px"></i>
+      </a>
+      <div>
+        <h1 class="text-lg font-bold text-white">Gerenciar Cursos</h1>
+        <p class="text-xs text-gray-600">Seed, crawler e verificacao de links</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 mb-8">
+      <div class="stat"><div><div class="stat-value">{{ total }}</div><div class="stat-label">Total</div></div></div>
+      <div class="stat"><div><div class="stat-value" style="color:#34d399">{{ total_ativos }}</div><div class="stat-label">Ativos</div></div></div>
+      <div class="stat"><div><div class="stat-value" style="color:#fca5a5">{{ total_inativos }}</div><div class="stat-label">Inativos</div></div></div>
+    </div>
+
+    {% if resultado %}<div class="msg msg-success"><i class="fas fa-check-circle"></i> {{ resultado }}</div>{% endif %}
+    {% if erro %}<div class="msg msg-error"><i class="fas fa-exclamation-circle"></i> {{ erro }}</div>{% endif %}
+
+    <div class="space-y-4">
+      <div class="card">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center text-cyan-400"><i class="fas fa-database"></i></div>
+          <div><h3 class="font-semibold text-sm text-white">Seed de Cursos</h3><p class="text-xs text-gray-600">Adicionar cursos aleatorios de plataformas confiaveis</p></div>
+        </div>
+        <form method="POST" class="flex gap-3">
+          <input type="hidden" name="acao" value="seed">
+          <input type="number" name="quantidade" value="200" min="10" max="1000" style="width:100px;flex-shrink:0">
+          <button type="submit" class="btn btn-primary flex-1"><i class="fas fa-plus"></i> Adicionar</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400/20 to-green-600/10 flex items-center justify-center text-green-400"><i class="fas fa-globe"></i></div>
+          <div><h3 class="font-semibold text-sm text-white">Crawler Web</h3><p class="text-xs text-gray-600">Buscar cursos reais nas plataformas</p></div>
+        </div>
+        <form method="POST" class="flex gap-3">
+          <input type="hidden" name="acao" value="crawl">
+          <button type="submit" class="btn btn-primary flex-1"><i class="fas fa-search"></i> Crawlear</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400"><i class="fas fa-link"></i></div>
+          <div><h3 class="font-semibold text-sm text-white">Verificar Links</h3><p class="text-xs text-gray-600">Checar cursos ativos e desativar links quebrados</p></div>
+        </div>
+        <form method="POST" class="flex gap-3">
+          <input type="hidden" name="acao" value="check_links">
+          <input type="number" name="limite" value="100" min="10" max="500" style="width:100px;flex-shrink:0">
+          <button type="submit" class="btn btn-primary flex-1"><i class="fas fa-check-double"></i> Verificar</button>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center text-gray-800 text-xs mt-8">
+      <i class="fas fa-robot"></i> Verificacao automatica de links a cada 1h
+    </p>
+  </div>
+</body>
+</html>
