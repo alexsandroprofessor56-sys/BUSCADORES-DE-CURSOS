@@ -29,7 +29,7 @@ TOR_EXIT_IPS = {ip.strip() for ip in os.environ.get("TOR_EXIT_IPS", "").split(",
 VPN_PROVIDER_MARKERS = ("hosting", "cloud", "vpn", "proxy", "datacenter", "digitalocean", "ovh", "amazon", "google cloud", "azure", "oracle cloud", "vultr", "linode", "scaleway", "hetzner")
 
 MALICIOUS_PATHS = {
-    "/admin", "/wp-admin", "/wp-login", "/xmlrpc.php", "wp-", "cgi-bin",
+    "/wp-admin", "/wp-login", "/xmlrpc.php", "wp-", "cgi-bin",
     ".env", ".git", ".svn", "config.php", "db_admin", "phpmyadmin",
     "mysql", "administrator", "joomla", "wordpress", "backup",
     "shell", "cmd", "exec", "eval", "concat", "union", "select",
@@ -157,6 +157,8 @@ def otpauth_uri(username, secret):
 
 def is_malicious_path(path):
     lower = (path or "").lower()
+    if lower.startswith("/admin") or lower.startswith("/api") or lower.startswith("/login") or lower == "/" or lower.startswith("/c/"):
+        return False
     return any(marker in lower for marker in MALICIOUS_PATHS)
 
 
