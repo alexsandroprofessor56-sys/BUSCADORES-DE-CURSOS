@@ -98,18 +98,18 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Cursos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center text-cyan-400"><i class="fas fa-graduation-cap text-sm"></i></div></div>
-          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ cursos|length }}</p>
-          <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-database mr-1"></i> total cadastrados</p>
+           <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ total_cursos }}</p>
+           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-database mr-1"></i> total cadastrados</p>
         </div>
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Cliques</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 flex items-center justify-center text-amber-400"><i class="fas fa-mouse-pointer text-sm"></i></div></div>
-          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ cursos|sum(attribute='cliques') }}</p>
+           <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ total_cliques }}</p>
           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-arrow-up mr-1 text-emerald-500"></i> total de acessos</p>
         </div>
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Banidos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400"><i class="fas fa-ban text-sm"></i></div></div>
-          <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ bans|length }}</p>
-          <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-shield mr-1"></i> IPs bloqueados</p>
+           <p class="text-2xl sm:text-3xl font-black text-white tracking-tight">{{ total_bans }}</p>
+           <p class="text-[10px] text-gray-600 mt-1"><i class="fas fa-shield mr-1"></i> IPs bloqueados</p>
         </div>
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Tráfego</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center text-emerald-400"><i class="fas fa-wifi text-sm"></i></div></div>
@@ -126,7 +126,7 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
         <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-fire text-orange-400"></i> Top Cursos</h3>
           <div class="space-y-1">
-            {% for curso in cursos[:8] %}
+            {% for curso in top_cursos %}
             <div class="flex justify-between items-center py-2 px-2 rounded-lg hover:bg-white/[0.015] transition-colors group">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="text-[10px] font-mono w-5 text-center {{ 'text-cyan-400' if loop.index <= 3 else 'text-gray-600' }}">#{{ loop.index }}</span>
@@ -158,26 +158,24 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
     <div id="tab-cursos" class="tab-content hidden tab-enter">
       <div class="flex items-center justify-between mb-6">
         <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-graduation-cap mr-2"></i>Gerenciar Cursos</span></h1>
-        <span class="text-xs text-gray-600">{{ cursos|length }} cursos</span>
+        <span id="cursosCount" class="text-xs text-gray-600">0 cursos</span>
+      </div>
+      <div class="flex gap-2 mb-3">
+        <input type="text" id="cursosSearch" placeholder="Buscar curso..." class="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50" oninput="cursosPage=1;carregarCursos()">
       </div>
       <div class="glass overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead><tr class="border-b border-white/5 text-gray-500 text-left"><th class="p-3 font-medium text-[11px] uppercase tracking-wider">ID</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nome</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider hidden sm:table-cell">Plataforma</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Preco</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nivel</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Rating</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Cliques</th></tr></thead>
-            <tbody>
-              {% for curso in cursos %}
-              <tr class="border-b border-white/5 hover:bg-white/[0.015] transition-colors">
-                <td class="p-3 text-gray-500 font-mono text-xs">#{{ curso.id }}</td>
-                <td class="p-3 font-medium max-w-xs truncate text-white">{{ curso.nome[:60] }}</td>
-                <td class="p-3 text-gray-400 hidden sm:table-cell">{{ curso.plataforma or '-' }}</td>
-                <td class="p-3">{% if curso.preco_tipo == 'gratuito' %}<span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold">Grátis</span>{% elif curso.preco_tipo == 'barato' %}<span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold">Barato</span>{% else %}<span class="badge-pago px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pago</span>{% endif %}</td>
-                <td class="p-3 text-gray-400 text-xs">{{ curso.nivel or '-' }}</td>
-                <td class="p-3 tabular-nums font-bold text-yellow-400">{{ curso.rating or '-' }}</td>
-                <td class="p-3 tabular-nums font-bold text-cyan-400">{{ curso.cliques }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
+            <tbody id="cursosTbody"></tbody>
           </table>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-3">
+        <span id="cursosPageInfo" class="text-xs text-gray-600">Pagina 1</span>
+        <div class="flex gap-2">
+          <button onclick="cursosPage--;carregarCursos()" id="cursosPrevBtn" class="btn btn-ghost text-xs" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+          <button onclick="cursosPage++;carregarCursos()" id="cursosNextBtn" class="btn btn-ghost text-xs">Proximo <i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
     </div>
@@ -230,8 +228,8 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
         </div>
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Banidos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400"><i class="fas fa-ban text-sm"></i></div></div>
-          <p class="text-lg sm:text-xl font-black text-white tracking-tight">{{ bans|length }}</p>
-          <p class="text-[10px] text-gray-600 mt-1">IPs bloqueados</p>
+           <p class="text-lg sm:text-xl font-black text-white tracking-tight">{{ total_bans }}</p>
+           <p class="text-[10px] text-gray-600 mt-1">IPs bloqueados</p>
         </div>
         <div class="glass stat-card">
           <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Whitelist</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center text-emerald-400"><i class="fas fa-user-shield text-sm"></i></div></div>
@@ -288,16 +286,32 @@ var tChart, liveMap = null, spikeChartInstance = null, mapMarkers = [];
 const tCtx=document.getElementById('trafficChart')?.getContext('2d');
 if(tCtx){const g=tCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(6,182,212,0.25)');g.addColorStop(.5,'rgba(6,182,212,0.08)');g.addColorStop(1,'rgba(6,182,212,0)');tChart=new Chart(tCtx,{type:'line',data:{labels:Array(20).fill(''),datasets:[{label:'Acessos',data:Array(20).fill(0),borderColor:'#06b6d4',backgroundColor:g,fill:!0,tension:.4,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#22d3ee',pointHoverBorderColor:'#fff',borderWidth:2}]},options:{responsive:!0,interaction:{intersect:!1,mode:'index'},plugins:{legend:{display:!1},tooltip:{enabled:!0,backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:10}},scales:{x:{display:!1,grid:{display:!1}},y:{beginAtZero:!0,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:10},maxTicksLimit:5}}},animation:{duration:800,easing:'easeOutQuart'}}})}
 const pCtx=document.getElementById('platformChart')?.getContext('2d');
-if(pCtx){const d={};{% for curso in cursos %}const p='{{ curso.plataforma or "Outros" }}';d[p]=(d[p]||0)+1;{% endfor %}const l=Object.keys(d).slice(0,6),v=l.map(k=>d[k]),c=['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];new Chart(pCtx,{type:'doughnut',data:{labels:l,datasets:[{data:v,backgroundColor:c.slice(0,l.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
+if(pCtx){const ps={{ platform_stats|tojson }};const l=ps.map(p=>p.name),v=ps.map(p=>p.count),c=['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];new Chart(pCtx,{type:'doughnut',data:{labels:l,datasets:[{data:v,backgroundColor:c.slice(0,l.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const rCtx=document.getElementById('priceChart')?.getContext('2d');
-if(rCtx){let g=0,b=0,p=0;{% for curso in cursos %}{% if curso.preco_tipo == 'gratuito' %}g++{% elif curso.preco_tipo == 'barato' %}b++{% else %}p++{% endif %}{% endfor %};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[g,b,p],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
+if(rCtx){const ps={{ price_stats|tojson }};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[ps.gratuito,ps.barato,ps.pago],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const socket=io();socket.on('sys_stats',()=>{const e=document.getElementById('liveUsers');if(e)e.textContent=Math.floor(Math.random()*15+3)});socket.on('novo_clique',()=>{if(tChart){const d=tChart.data.datasets[0].data;d.push(1);if(d.length>20)d.shift();tChart.update('none')}});
 
 document.addEventListener('keydown',function(e){
   if(e.altKey||e.ctrlKey||e.metaKey)return;
   if(e.key>='1'&&e.key<='5'&&!e.target.closest('input,textarea')){e.preventDefault();showTab(TAB_KEYS[e.key])}
 });
-document.addEventListener('DOMContentLoaded',function(){setTimeout(initMap,500)});
+var cursosPage=1;
+function carregarCursos(){
+  const q=document.getElementById('cursosSearch').value.trim();
+  fetch('/api/cursos?page='+cursosPage+'&per_page=50&q='+encodeURIComponent(q)).then(r=>r.json()).then(d=>{
+    document.getElementById('cursosCount').textContent=d.total+' cursos';
+    document.getElementById('cursosPageInfo').textContent='Pagina '+d.page+' de '+d.pages;
+    document.getElementById('cursosPrevBtn').disabled=!d.has_prev;
+    document.getElementById('cursosNextBtn').disabled=!d.has_next;
+    const tbody=document.getElementById('cursosTbody');
+    if(d.cursos.length===0){tbody.innerHTML='<tr><td colspan="7" class="p-6 text-center text-gray-500">Nenhum curso encontrado</td></tr>';return}
+    tbody.innerHTML=d.cursos.map(c=>{
+      const badge=c.preco_tipo==='gratuito'?'<span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold">Gratis</span>':c.preco_tipo==='barato'?'<span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold">Barato</span>':'<span class="badge-pago px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pago</span>';
+      return '<tr class="border-b border-white/5 hover:bg-white/[0.015] transition-colors"><td class="p-3 text-gray-500 font-mono text-xs">#'+c.id+'</td><td class="p-3 font-medium max-w-xs truncate text-white">'+c.nome+'</td><td class="p-3 text-gray-400 hidden sm:table-cell">'+c.plataforma+'</td><td class="p-3">'+badge+'</td><td class="p-3 text-gray-400 text-xs">'+c.nivel+'</td><td class="p-3 tabular-nums font-bold text-yellow-400">'+c.rating+'</td><td class="p-3 tabular-nums font-bold text-cyan-400">'+c.cliques+'</td></tr>';
+    }).join('');
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){setTimeout(initMap,500);carregarCursos()});
 
 function showTab(n){
   document.querySelectorAll('.tab-content').forEach(t=>{t.classList.add('hidden')});

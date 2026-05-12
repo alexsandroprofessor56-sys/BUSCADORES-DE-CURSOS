@@ -735,10 +735,35 @@ def setup_2fa():
 def admin_dashboard():
     if current_user.otp_enabled and not session.get("_2fa_verified"):
         return redirect(url_for("admin_bp.admin_login"))
-    cursos = db.session.execute(db.select(Curso).order_by(Curso.cliques.desc())).scalars().all()
+    total_cursos = db.session.scalar(db.select(db.func.count(Curso.id))) or 0
+    total_cliques = db.session.scalar(db.select(db.func.sum(Curso.cliques))) or 0
     bans = IPBanido.query.all()
     ld_status = lockdown_status()
-    return render_template("admin.html", cursos=cursos, bans=bans, lockdown_status=ld_status)
+    top_cursos = db.session.execute(db.select(Curso).order_by(Curso.cliques.desc()).limit(8)).scalars().all()
+    from collections import Counter
+    rows = db.session.execute(db.select(Curso.plataforma, Curso.preco_tipo)).all()
+    plat_counter = Counter()
+    price_counter = Counter()
+    for plat, preco in rows:
+        plat_counter[plat or "Outros"] += 1
+        price_counter[preco or "pago"] += 1
+    platform_stats = [{"name": k, "count": v} for k, v in plat_counter.most_common(6)]
+    price_stats = {
+        "gratuito": price_counter.get("gratuito", 0),
+        "barato": price_counter.get("barato", 0),
+        "pago": price_counter.get("pago", 0),
+    }
+    return render_template(
+        "admin.html",
+        total_cursos=total_cursos,
+        total_cliques=total_cliques,
+        top_cursos=top_cursos,
+        total_bans=len(bans),
+        bans=bans,
+        lockdown_status=ld_status,
+        platform_stats=platform_stats,
+        price_stats=price_stats,
+    )
 
 @admin_bp.route("/c/<int:id>")
 def redirecionar_curso(id):
@@ -939,6 +964,38 @@ def api_unban():
 def api_search():
     query = request.args.get("q", "")
     return jsonify(recommend_courses(query, limit=12))
+
+
+@admin_bp.route("/api/cursos")
+@login_required
+def api_cursos():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 50, type=int)
+    per_page = min(per_page, 200)
+    q = request.args.get("q", "").strip()
+    query = db.select(Curso)
+    if q:
+        like = f"%{q}%"
+        query = query.where(db.or_(Curso.nome.ilike(like), Curso.plataforma.ilike(like)))
+    query = query.order_by(Curso.cliques.desc())
+    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+    return jsonify({
+        "cursos": [{
+            "id": c.id,
+            "nome": c.nome[:60],
+            "plataforma": c.plataforma or "-",
+            "preco_tipo": c.preco_tipo or "pago",
+            "nivel": c.nivel or "-",
+            "rating": c.rating or "-",
+            "cliques": c.cliques,
+        } for c in pagination.items],
+        "page": pagination.page,
+        "pages": pagination.pages,
+        "total": pagination.total,
+        "per_page": per_page,
+        "has_next": pagination.has_next,
+        "has_prev": pagination.has_prev,
+    })
 
 
 @admin_bp.route("/api/recommendations")
