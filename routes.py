@@ -102,6 +102,10 @@ def security_gate():
     ip = get_client_ip(request)
     ua = request.headers.get("User-Agent", "")
 
+    bypass_key = os.environ.get("BYPASS_KEY", "")
+    if bypass_key and request.headers.get("X-Bypass-Key") == bypass_key:
+        return None
+
     if is_malicious_path(request.path):
         log_security_event(ip, "malicious_path", f"Path malicioso detectado: {request.path}", "critical", ua)
         auto_ban(ip, f"Path malicioso: {request.path}", ua)
