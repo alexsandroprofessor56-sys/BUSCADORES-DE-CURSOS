@@ -57,6 +57,7 @@ def init_oauth(app):
         app.logger.warning("Google OAuth não configurado. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET.")
         return None
 
+    oauth.init_app(app)
     try:
         google = oauth.register(
             name="google",
