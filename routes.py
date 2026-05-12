@@ -657,6 +657,13 @@ def public_login():
         if user:
             if not bcrypt.check_password_hash(user.password, password):
                 return render_template("site_login.html", erro="Senha incorreta.", google_ready=google_ready, google_login_url=google_url)
+            send_telegram_notification(
+                f"\U0001f44b LOGIN\n"
+                f"Nome: {user.username.split('@')[0]}\n"
+                f"Email: {email}\n"
+                f"IP: {get_client_ip(request)}\n"
+                f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            )
         else:
             pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
             user = User(username=email, password=pw_hash)
@@ -664,6 +671,7 @@ def public_login():
             db.session.commit()
             send_telegram_notification(
                 f"\U0001f4a5 NOVO CADASTRO\n"
+                f"Nome: {email.split('@')[0]}\n"
                 f"Email: {email}\n"
                 f"IP: {get_client_ip(request)}\n"
                 f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
@@ -699,7 +707,8 @@ def public_google_authorize():
         if user_info:
             session.permanent = True
             session["site_user_email"] = user_info.get("email")
-            session["site_user_name"] = (user_info.get("email") or "").split("@")[0]
+            nome = user_info.get("name") or user_info.get("email", "").split("@")[0]
+            session["site_user_name"] = nome
             session["site_user_picture"] = user_info.get("picture")
             session["site_user_logged_at"] = datetime.now().isoformat(timespec="seconds")
             log_security_event(
@@ -708,6 +717,13 @@ def public_google_authorize():
                 f"Login Google do site: {user_info.get('email')}",
                 "info",
                 request.headers.get("User-Agent", ""),
+            )
+            send_telegram_notification(
+                f"\U0001f44b LOGIN GOOGLE\n"
+                f"Nome: {nome}\n"
+                f"Email: {user_info.get('email')}\n"
+                f"IP: {get_client_ip(request)}\n"
+                f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
             )
             redirect_to = session.pop("redirect_after_login", None)
             return redirect(redirect_to or url_for("admin_bp.index"))
