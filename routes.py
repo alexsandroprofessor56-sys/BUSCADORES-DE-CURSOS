@@ -699,3 +699,36 @@ def admin_crawler():
         total_inativos=total_inativos,
         total=total_ativos + total_inativos,
     )
+
+
+@admin_bp.route("/api/rate/<int:id>/<int:voto>")
+def api_rating(id, voto):
+    if voto < 1 or voto > 5:
+        return jsonify({"success": False, "error": "Nota invalida"})
+    curso = db.session.get(Curso, id)
+    if not curso:
+        return jsonify({"success": False, "error": "Curso nao encontrado"})
+    curso.rating = float(voto)
+    db.session.commit()
+    return jsonify({"success": True, "rating": voto})
+
+
+@admin_bp.route("/api/avatar", methods=["POST"])
+def api_avatar_upload():
+    if not _site_logged_in():
+        return jsonify({"success": False, "error": "Nao logado"}), 401
+    if "avatar" not in request.files:
+        return jsonify({"success": False, "error": "Nenhum arquivo"})
+    f = request.files["avatar"]
+    if not f.filename:
+        return jsonify({"success": False, "error": "Arquivo vazio"})
+    import uuid
+    ext = f.filename.rsplit(".", 1)[-1].lower() if "." in f.filename else "png"
+    if ext not in ("png", "jpg", "jpeg", "gif", "webp"):
+        return jsonify({"success": False, "error": "Formato invalido"})
+    nome = f"avatar_{uuid.uuid4().hex[:12]}.{ext}"
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "avatars", nome)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    f.save(path)
+    session["site_user_avatar"] = f"/static/avatars/{nome}"
+    return jsonify({"success": True, "avatar": session["site_user_avatar"]})

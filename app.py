@@ -126,9 +126,9 @@ with app.app_context():
         app.logger.info(f"Admin encontrado: {admin_username}")
 
     total = Curso.query.count()
-    if total < 500:
-        app.logger.info(f"Apenas {total} cursos. Populando ate 1000...")
-        criados = seed_cursos(1000 - total)
+    if total < 2000:
+        app.logger.info(f"Apenas {total} cursos. Populando ate 2000...")
+        criados = seed_cursos(2000 - total)
         app.logger.info(f"Seed concluido! +{criados} cursos. Total: {Curso.query.count()}")
 
 

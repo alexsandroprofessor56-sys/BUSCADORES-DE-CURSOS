@@ -178,17 +178,26 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
       Alertas
     </a>
   </nav>
-  <a href="/sair" class="avatar-top" title="Sair">
+  <a href="javascript:void(0)" onclick="document.getElementById('avatarInput').click()" class="avatar-top" title="Trocar foto">
     <div class="avatar-top-ring"></div>
+    {% if session.site_user_avatar %}
+    <img src="{{ session.site_user_avatar }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+    {% else %}
     {{ (session.site_user_name or session.site_user_email.split('@')[0])[:1].upper() }}
+    {% endif %}
   </a>
 </header>
 
 <main style="position:relative;z-index:2">
   <section class="hero">
-    <div class="hero-avatar">
+    <div class="hero-avatar" id="avatarBtn" style="cursor:pointer" title="Clique para trocar foto" onclick="document.getElementById('avatarInput').click()">
+      {% if session.site_user_avatar %}
+      <img src="{{ session.site_user_avatar }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+      {% else %}
       {{ (session.site_user_name or session.site_user_email.split('@')[0])[:1].upper() }}
+      {% endif %}
     </div>
+    <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
     <h1>Olá, <span>{{ session.site_user_name or session.site_user_email.split('@')[0] }}</span></h1>
     <p class="hero-sub">Encontre o curso ideal para sua carreira</p>
     <div class="hero-stats">
@@ -252,7 +261,13 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
         <div class="card-top-bar" style="background:linear-gradient(90deg,{{ colors[ci] }},{{ colors[(ci+1)%8] }})"></div>
         <div class="card-body">
           <div class="card-header">
-            <div class="card-initials" style="background:linear-gradient(135deg,{{ colors[ci] }},{{ colors[(ci+1)%8] }})">{{ curso.logo_initials or 'RE' }}</div>
+            <div class="card-initials" style="background:linear-gradient(135deg,{{ colors[ci] }},{{ colors[(ci+1)%8] }});overflow:hidden;position:relative">
+              {% if curso.logo_url %}
+              <img src="{{ curso.logo_url }}" alt="" style="width:24px;height:24px;object-fit:contain" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff">{{ curso.logo_initials or 'RE' }}</span>
+              {% else %}
+              {{ curso.logo_initials or 'RE' }}
+              {% endif %}
+            </div>
             <div class="min-w-0 flex-1">
               <div class="card-title truncate">{{ curso.nome }}</div>
               <div class="card-platform">
@@ -274,9 +289,12 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
                 <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 {{ curso.cliques or 0 }}
               </span>
-              <span class="card-rating">
-                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                {{ curso.rating or 4.0 }}
+              <span class="card-rating" data-curso="{{ curso.id }}" data-rating="{{ curso.rating|round|int }}">
+                {% for i in range(1,6) %}
+                <svg class="star star-{{ i }}" data-voto="{{ i }}" viewBox="0 0 24 24" style="width:11px;height:11px;cursor:pointer;transition:all .2s;{% if i <= (curso.rating|round|int) %}fill:rgba(251,191,36,.5);stroke:rgba(251,191,36,.5){% else %}fill:none;stroke:rgba(255,255,255,.1);stroke-width:1.5{% endif %}" onmouseenter="starHover(this,{{ i }},{{ curso.id }})" onmouseleave="starLeave(this,{{ i }},{{ curso.id }})" onclick="starClick({{ curso.id }},{{ i }})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                {% endfor %}
+                <span class="star-text" style="font-size:10px;color:rgba(255,255,255,.2);margin-left:2px">{{ curso.rating }}</span>
+              </span>
               </span>
             </div>
             <div class="card-actions">
@@ -340,6 +358,26 @@ function favoritar(el,id){
     if(d.success){el.classList.toggle('liked');toast('Curso favoritado!','fa-star')}
     else toast(d.error||'Erro','fa-exclamation-triangle')
   }).catch(()=>toast('Faça login para favoritar','fa-exclamation-triangle'))
+}
+const starData={};
+function starHover(el,i,id){const p=el.closest('.card-rating');p.querySelectorAll('.star').forEach((s,idx)=>{const v=parseInt(s.dataset.voto);s.style.fill=v<=i?'rgba(251,191,36,.6)':'none';s.style.stroke=v<=i?'rgba(251,191,36,.6)':'rgba(255,255,255,.1)'})}
+function starLeave(el,i,id){const p=el.closest('.card-rating');const r=parseInt(p.dataset.rating);p.querySelectorAll('.star').forEach((s,idx)=>{const v=parseInt(s.dataset.voto);s.style.fill=v<=r?'rgba(251,191,36,.5)':'none';s.style.stroke=v<=r?'rgba(251,191,36,.5)':'rgba(255,255,255,.1)'})}
+function starClick(id,voto){
+  fetch('/api/rate/'+id+'/'+voto,{method:'POST'}).then(r=>r.json()).then(d=>{
+    if(d.success){
+      const cards=document.querySelectorAll('.card-rating');
+      cards.forEach(c=>{if(parseInt(c.dataset.curso)===id){c.dataset.rating=voto;const txt=c.querySelector('.star-text');if(txt)txt.textContent=voto+'.0';starLeave(null,0,id)}})
+      toast('Avaliado: '+voto+' estrelas!','fa-star')
+    }
+  }).catch(()=>toast('Erro ao avaliar','fa-exclamation-triangle'))
+}
+function uploadAvatar(input){
+  const f=input.files[0];if(!f)return;
+  const fd=new FormData();fd.append('avatar',f);
+  fetch('/api/avatar',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){document.querySelectorAll('.hero-avatar img,.avatar-top img').forEach(i=>i.src=d.avatar+'?t='+Date.now());toast('Foto alterada!','fa-star')}
+    else toast(d.error||'Erro','fa-exclamation-triangle')
+  }).catch(()=>toast('Erro ao enviar','fa-exclamation-triangle'))
 }
 // particles
 (function(){const c=document.getElementById('particles'),ctx=c.getContext('2d');let w,h;function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}resize();window.addEventListener('resize',resize)

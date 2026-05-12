@@ -55,6 +55,15 @@ AREAS = [
     "Saude, Bem-estar", "Educacao, Pedagogia", "Direito, Legislacao",
     "Meio Ambiente", "Agronegocio", "Industria, Producao",
     "Ciencia de Dados, IA", "Cloud Computing", "Ciberseguranca",
+    "Arte, Criatividade", "Musica", "Gastronomia, Culinaria",
+    "Moda, Beleza", "Esportes", "Turismo, Hospitalidade",
+    "Arquitetura, Urbanismo", "Astronomia", "Games, Jogos",
+    "Blockchain, Web3", "Producao de Conteudo", "Literatura, Escrita",
+    "Psicologia", "Nutricao, Fitness", "Logistica, Transportes",
+    "Seguranca do Trabalho", "Religiao, Espiritualidade",
+    "Matematica Aplicada", "Empreendedorismo, Startups",
+    "Saude Mental, Terapias", "Ciencias Sociais Aplicadas",
+    "Biologia, Biotecnologia",
 ]
 
 NIVEIS = ["iniciante", "intermediario", "avancado"]
@@ -131,6 +140,41 @@ NOMES_BASE = [
     "Agricultura Organica", "Hidroponia", "Fintechs e Inovacao",
     "Web3 Fundamentos", "Smart Contracts Solidity", "Analise de Sistemas",
     "Engenharia de Software", "Qualidade de Software", "Banco de Dados NoSQL",
+    "Producao Musical", "DJ Profissional", "Canto e Tecnica Vocal",
+    "Teoria Musical", "Mixagem e Masterizacao", "Producao de Podcast",
+    "Streaming ao Vivo", "YouTube Criacao", "Edicao de Video",
+    "After Effects", "Animacao 2D e 3D", "Modelagem 3D Blender",
+    "Design de Personagens", "Ilustracao Digital", "Concept Art",
+    "Arte Digital", "Pintura a Oleo", "Artes Plasticas",
+    "Fotografia de Produto", "Filmagem com Drone", "Cinema Digital",
+    "Maquiagem Artistica", "Visagismo", "Costura Criativa",
+    "Modelagem Industrial", "Design de Moda", "Colorimetria",
+    "Confeitaria Artistica", "Panificacao", "Sommelier de Vinhos",
+    "Barista Profissional", "Cozinha Internacional", "Gastronomia Molecular",
+    "Cozinha Vegana", "Cerveja Artesanal", "Gourmet",
+    "Arquitetura Sustentavel", "Paisagismo", "Design de Interiores",
+    "Iluminacao Cênica", "Urbanismo", "Cidades Sustentaveis",
+    "Astronomia Observacional", "Astrofisica", "Cosmologia Moderna",
+    "Fisica Quantica", "Robotica Industrial", "IA para Jogos",
+    "Game Design", "Level Design", "Narrativa Interativa",
+    "Desenvolvimento de Jogos 2D", "Desenvolvimento de Jogos 3D",
+    "Unity Game Engine", "Unreal Engine 5", "Criptomoedas",
+    "Blockchain Developer", "NFTs e Mercado Digital", "DeFi Financas",
+    "Economia Comportamental", "ESG Sustentabilidade", "Microeconomia",
+    "Literatura Brasileira", "Poesia Contemporanea", "Roteiro para Cinema",
+    "Escrita Criativa Avancada", "Revisao Textual", "Traducao Profissional",
+    "Filosofia Contemporanea", "Sociologia Digital", "Ciencia Politica",
+    "Relacoes Internacionais", "Direitos Humanos", "Antropologia Cultural",
+    "Meditacao Guiada", "Yoga para Iniciantes", "Inteligencia Emocional",
+    "Coach de Carreira", "Mindfulness", "Neurociencia",
+    "Psicanalise", "Terapia Cognitiva", "Psicologia Positiva",
+    "Personal Trainer", "Musculacao Cientifica", "CrossFit",
+    "Pilates", "Fisioterapia Esportiva", "Nutricao Clinica",
+    "Logistica Empresarial", "Gestao de Frotas", "Importacao Exportacao",
+    "Comercio Exterior", "Seguranca Industrial", "CIPA",
+    "Ergonomia", "NRs Regulamentadoras", "Medicina do Trabalho",
+    "Libras Avancado", "Braile", "Portugues para Estrangeiros",
+    "Teologia Sistematica", "Biblia Hebraica", "Estudos Orientais",
 ]
 
 PREFIXOS = [
@@ -151,7 +195,7 @@ CERT_TYPES = [
 ]
 
 
-def seed_cursos(quantidade=500):
+def seed_cursos(quantidade=2000):
     criados = 0
     random.seed()
     usados = set()

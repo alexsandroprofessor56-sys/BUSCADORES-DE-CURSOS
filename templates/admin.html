@@ -60,6 +60,7 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
     <nav class="space-y-1 flex-1">
       <a href="#" onclick="showTab('dashboard')" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 text-sm" data-tab="dashboard"><i class="fas fa-chart-pie w-4 text-center text-cyan-400"></i> Dashboard</a>
       <a href="#" onclick="showTab('cursos')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="cursos"><i class="fas fa-graduation-cap w-4 text-center"></i> Cursos</a>
+      <a href="/admin/crawler" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"><i class="fas fa-robot w-4 text-center"></i> Crawler</a>
       <a href="#" onclick="showTab('ips')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="ips"><i class="fas fa-shield-halved w-4 text-center"></i> IPs Banidos</a>
       <a href="#" onclick="showTab('terminal')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="terminal"><i class="fas fa-terminal w-4 text-center"></i> Terminal</a>
       <a href="#" onclick="showTab('seguranca')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="seguranca"><i class="fas fa-lock w-4 text-center"></i> Segurança</a>
@@ -145,7 +146,7 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
       <div class="glass overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
-            <thead><tr class="border-b border-white/5 text-gray-500 text-left"><th class="p-3 font-medium text-[11px] uppercase tracking-wider">ID</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nome</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider hidden sm:table-cell">Plataforma</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Preco</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nivel</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Cliques</th></tr></thead>
+            <thead><tr class="border-b border-white/5 text-gray-500 text-left"><th class="p-3 font-medium text-[11px] uppercase tracking-wider">ID</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nome</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider hidden sm:table-cell">Plataforma</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Preco</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Nivel</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Rating</th><th class="p-3 font-medium text-[11px] uppercase tracking-wider">Cliques</th></tr></thead>
             <tbody>
               {% for curso in cursos %}
               <tr class="border-b border-white/5 hover:bg-white/[0.015] transition-colors">
@@ -154,6 +155,7 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
                 <td class="p-3 text-gray-400 hidden sm:table-cell">{{ curso.plataforma or '-' }}</td>
                 <td class="p-3">{% if curso.preco_tipo == 'gratuito' %}<span class="badge-gratis px-2.5 py-0.5 rounded-full text-[10px] font-bold">Grátis</span>{% elif curso.preco_tipo == 'barato' %}<span class="badge-barato px-2.5 py-0.5 rounded-full text-[10px] font-bold">Barato</span>{% else %}<span class="badge-pago px-2.5 py-0.5 rounded-full text-[10px] font-bold">Pago</span>{% endif %}</td>
                 <td class="p-3 text-gray-400 text-xs">{{ curso.nivel or '-' }}</td>
+                <td class="p-3 tabular-nums font-bold text-yellow-400">{{ curso.rating or '-' }}</td>
                 <td class="p-3 tabular-nums font-bold text-cyan-400">{{ curso.cliques }}</td>
               </tr>
               {% endfor %}
