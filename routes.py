@@ -741,18 +741,28 @@ def admin_dashboard():
     ld_status = lockdown_status()
     top_cursos = db.session.execute(db.select(Curso).order_by(Curso.cliques.desc()).limit(8)).scalars().all()
     from collections import Counter
-    rows = db.session.execute(db.select(Curso.plataforma, Curso.preco_tipo)).all()
+    rows = db.session.execute(db.select(Curso.plataforma, Curso.preco_tipo, Curso.nivel, Curso.rating, Curso.certificacao)).all()
     plat_counter = Counter()
     price_counter = Counter()
-    for plat, preco in rows:
+    nivel_counter = Counter()
+    rating_counter = Counter()
+    cert_counter = Counter()
+    for plat, preco, nivel, rating, cert in rows:
         plat_counter[plat or "Outros"] += 1
         price_counter[preco or "pago"] += 1
+        nivel_counter[nivel or "Nao informado"] += 1
+        r = int(float(rating or 0))
+        rating_counter[r] += 1
+        cert_counter["Com certificado" if cert else "Sem certificado"] += 1
     platform_stats = [{"name": k, "count": v} for k, v in plat_counter.most_common(6)]
     price_stats = {
         "gratuito": price_counter.get("gratuito", 0),
         "barato": price_counter.get("barato", 0),
         "pago": price_counter.get("pago", 0),
     }
+    nivel_stats = [{"name": k, "count": v} for k, v in sorted(nivel_counter.items(), key=lambda x: -x[1])]
+    rating_stats = [{"name": str(k), "count": v} for k, v in sorted(rating_counter.items())]
+    cert_stats = [{"name": k, "count": v} for k, v in cert_counter.items()]
     return render_template(
         "admin.html",
         total_cursos=total_cursos,
@@ -763,6 +773,9 @@ def admin_dashboard():
         lockdown_status=ld_status,
         platform_stats=platform_stats,
         price_stats=price_stats,
+        nivel_stats=nivel_stats,
+        rating_stats=rating_stats,
+        cert_stats=cert_stats,
     )
 
 @admin_bp.route("/c/<int:id>")
@@ -848,6 +861,51 @@ def api_security_events():
         }
         for event in events
     ])
+
+
+@admin_bp.route("/api/traffic/search")
+@login_required
+def api_traffic_search():
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 100, type=int)
+    per_page = min(per_page, 500)
+    ip_q = request.args.get("ip", "").strip()
+    country_q = request.args.get("country", "").strip()
+    threat = request.args.get("threat", "").strip()
+    query = db.select(AccessEvent)
+    if ip_q:
+        query = query.where(AccessEvent.ip.ilike(f"%{ip_q}%"))
+    if country_q:
+        query = query.where(AccessEvent.country.ilike(f"%{country_q}%"))
+    if threat == "bot":
+        query = query.where(AccessEvent.is_bot.is_(True))
+    elif threat == "vpn":
+        query = query.where(AccessEvent.is_vpn.is_(True))
+    elif threat == "tor":
+        query = query.where(AccessEvent.is_tor.is_(True))
+    elif threat == "normal":
+        query = query.where(~AccessEvent.is_bot.is_(True), ~AccessEvent.is_vpn.is_(True), ~AccessEvent.is_tor.is_(True))
+    query = query.order_by(AccessEvent.created_at.desc())
+    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+    return jsonify({
+        "events": [{
+            "ip": e.ip,
+            "path": e.path,
+            "country": e.country,
+            "city": e.city,
+            "provider": e.provider,
+            "lat": e.latitude,
+            "lng": e.longitude,
+            "is_bot": e.is_bot,
+            "is_vpn": e.is_vpn,
+            "is_tor": e.is_tor,
+            "created_at": e.created_at.isoformat() if e.created_at else None,
+        } for e in pagination.items],
+        "page": pagination.page,
+        "pages": pagination.pages,
+        "total": pagination.total,
+        "per_page": per_page,
+    })
 
 
 @admin_bp.route("/api/traffic")

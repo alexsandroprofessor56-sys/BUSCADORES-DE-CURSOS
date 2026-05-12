@@ -25,7 +25,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 *,*::before,*::after{scrollbar-width:thin;scrollbar-color:#1f2937 transparent}
@@ -81,6 +84,7 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
       <a href="#" onclick="showTab('ips')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="ips"><i class="fas fa-shield-halved w-4 text-center"></i> IPs Banidos <span class="ml-auto text-[10px] text-gray-700 font-mono">[3]</span></a>
       <a href="#" onclick="showTab('terminal')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="terminal"><i class="fas fa-terminal w-4 text-center"></i> Terminal <span class="ml-auto text-[10px] text-gray-700 font-mono">[4]</span></a>
       <a href="#" onclick="showTab('seguranca')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="seguranca"><i class="fas fa-lock w-4 text-center"></i> Segurança <span class="ml-auto text-[10px] text-gray-700 font-mono">[5]</span></a>
+      <a href="#" onclick="showTab('mapa')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="mapa"><i class="fas fa-globe-americas w-4 text-center"></i> Mapa IPs <span class="ml-auto text-[10px] text-gray-700 font-mono">[6]</span></a>
     </nav>
     <div class="space-y-1 pt-4 border-t border-white/5">
       <a href="/" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-500 hover:text-gray-300"><i class="fas fa-arrow-left w-4 text-center"></i> Voltar</a>
@@ -139,18 +143,22 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="glass p-4 sm:p-5">
-          <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-globe-americas text-cyan-400"></i> Acessos Globais</h3>
-          <div class="h-48 rounded-xl flex items-center justify-center text-gray-600 text-sm bg-black/20 border border-white/5"><i class="fas fa-map-marked-alt text-3xl mr-3 opacity-30"></i> Mapa</div>
-        </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass p-4 sm:p-5">
           <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-layer-group text-purple-400"></i> Plataformas</h3>
-          <canvas id="platformChart" height="180"></canvas>
+          <canvas id="platformChart" height="150"></canvas>
         </div>
         <div class="glass p-4 sm:p-5">
-          <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-tags text-amber-400"></i> Preços</h3>
-          <canvas id="priceChart" height="180"></canvas>
+          <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-tags text-amber-400"></i> Precos</h3>
+          <canvas id="priceChart" height="150"></canvas>
+        </div>
+        <div class="glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-star text-yellow-400"></i> Rating</h3>
+          <canvas id="ratingChart" height="150"></canvas>
+        </div>
+        <div class="glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-4 flex items-center gap-2"><i class="fas fa-signal text-green-400"></i> Nivel</h3>
+          <canvas id="nivelChart" height="150"></canvas>
         </div>
       </div>
     </div>
@@ -275,12 +283,51 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
         <div id="securityLogs" class="text-sm font-mono space-y-1 max-h-64 overflow-y-auto"></div>
       </div>
     </div>
+
+    <div id="tab-mapa" class="tab-content hidden tab-enter">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-cyan-300 to-cyan-500 bg-clip-text text-transparent"><i class="fas fa-globe-americas mr-2"></i>Mapa de IPs</span></h1>
+        <span id="mapaTotal" class="text-xs text-gray-600">0 eventos</span>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <input type="text" id="mapaSearchIp" placeholder="Buscar IP..." class="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50 w-40" oninput="debounceSearch(mapaPage=1)">
+        <input type="text" id="mapaSearchCountry" placeholder="Pais..." class="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50 w-32" oninput="debounceSearch(mapaPage=1)">
+        <select id="mapaFilterThreat" class="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50 w-32" onchange="mapaPage=1;carregarMapa()">
+          <option value="">Todos</option>
+          <option value="normal">Normal</option>
+          <option value="bot">Bot</option>
+          <option value="vpn">VPN</option>
+          <option value="tor">TOR</option>
+        </select>
+        <button onclick="mapaPage=1;carregarMapa()" class="btn btn-ghost text-xs"><i class="fas fa-search"></i></button>
+        <button onclick="mapaPage=1;document.getElementById('mapaSearchIp').value='';document.getElementById('mapaSearchCountry').value='';document.getElementById('mapaFilterThreat').value='';carregarMapa()" class="btn btn-ghost text-xs"><i class="fas fa-undo"></i> Limpar</button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div class="lg:col-span-3 glass p-2 sm:p-3" style="height:600px;">
+          <div id="mapaMap" class="h-full w-full rounded-xl" style="background:#0a0f16;"></div>
+        </div>
+        <div class="glass p-4 sm:p-5 overflow-y-auto" style="max-height:600px;" id="mapaDetail">
+          <div class="text-center py-12 text-gray-600">
+            <i class="fas fa-map-marker-alt text-4xl mb-3 opacity-30"></i>
+            <p class="text-sm">Clique num marcador</p>
+            <p class="text-xs mt-1">para ver detalhes do IP</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mt-3">
+        <span id="mapaPageInfo" class="text-xs text-gray-600">Pagina 1</span>
+        <div class="flex gap-2">
+          <button onclick="mapaPage--;carregarMapa()" id="mapaPrevBtn" class="btn btn-ghost text-xs" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
+          <button onclick="mapaPage++;carregarMapa()" id="mapaNextBtn" class="btn btn-ghost text-xs">Proximo <i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-const TABS = ['dashboard','cursos','ips','terminal','seguranca'];
-const TAB_KEYS = {1:'dashboard',2:'cursos',3:'ips',4:'terminal',5:'seguranca'};
+const TABS = ['dashboard','cursos','ips','terminal','seguranca','mapa'];
+const TAB_KEYS = {1:'dashboard',2:'cursos',3:'ips',4:'terminal',5:'seguranca',6:'mapa'};
 var tChart, liveMap = null, spikeChartInstance = null, mapMarkers = [];
 
 const tCtx=document.getElementById('trafficChart')?.getContext('2d');
@@ -289,11 +336,15 @@ const pCtx=document.getElementById('platformChart')?.getContext('2d');
 if(pCtx){const ps={{ platform_stats|tojson }};const l=ps.map(p=>p.name),v=ps.map(p=>p.count),c=['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];new Chart(pCtx,{type:'doughnut',data:{labels:l,datasets:[{data:v,backgroundColor:c.slice(0,l.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const rCtx=document.getElementById('priceChart')?.getContext('2d');
 if(rCtx){const ps={{ price_stats|tojson }};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[ps.gratuito,ps.barato,ps.pago],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
+const rtCtx=document.getElementById('ratingChart')?.getContext('2d');
+if(rtCtx){const rs={{ rating_stats|tojson }};new Chart(rtCtx,{type:'bar',data:{labels:rs.map(r=>'★'+r.name),datasets:[{label:'Cursos',data:rs.map(r=>r.count),backgroundColor:['rgba(250,204,21,0.6)','rgba(250,204,21,0.5)','rgba(250,204,21,0.4)','rgba(250,204,21,0.3)','rgba(250,204,21,0.2)'],borderRadius:4,borderWidth:0}]},options:{responsive:!0,plugins:{legend:{display:!1},tooltip:{backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#fbbf24',borderColor:'rgba(250,204,21,.2)',borderWidth:1,cornerRadius:8,padding:8}},scales:{x:{grid:{display:!1},ticks:{color:'#6b7280',font:{size:9}}},y:{beginAtZero:!0,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:9},maxTicksLimit:4}}},animation:{duration:500}}})}
+const nCtx=document.getElementById('nivelChart')?.getContext('2d');
+if(nCtx){const ns={{ nivel_stats|tojson }};const nc=['#06b6d4','#8b5cf6','#f59e0b','#10b981','#ef4444'];new Chart(nCtx,{type:'doughnut',data:{labels:ns.map(n=>n.name),datasets:[{data:ns.map(n=>n.count),backgroundColor:nc.slice(0,ns.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:8},padding:6,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const socket=io();socket.on('sys_stats',()=>{const e=document.getElementById('liveUsers');if(e)e.textContent=Math.floor(Math.random()*15+3)});socket.on('novo_clique',()=>{if(tChart){const d=tChart.data.datasets[0].data;d.push(1);if(d.length>20)d.shift();tChart.update('none')}});
 
 document.addEventListener('keydown',function(e){
   if(e.altKey||e.ctrlKey||e.metaKey)return;
-  if(e.key>='1'&&e.key<='5'&&!e.target.closest('input,textarea')){e.preventDefault();showTab(TAB_KEYS[e.key])}
+  if(e.key>='1'&&e.key<='6'&&!e.target.closest('input,textarea')){e.preventDefault();showTab(TAB_KEYS[e.key])}
 });
 var cursosPage=1;
 function carregarCursos(){
@@ -321,6 +372,7 @@ function showTab(n){
   const l=document.querySelector(`.sidebar-link[data-tab="${n}"]`);
   if(l){l.classList.add('active');l.style.background='linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';l.style.color='#06b6d4';const i=l.querySelector('i');if(i)i.style.color='#06b6d4'}
   if(n==='seguranca'){setTimeout(()=>{initMap();atualizarPainelSeguranca()},100)}
+  if(n==='mapa'){setTimeout(()=>{initMapaMap();carregarMapa()},100)}
 }
 
 function initMap(){
@@ -436,6 +488,72 @@ function updateMapMarkers(ips){
 
 setInterval(atualizarPainelSeguranca,8000);
 setTimeout(atualizarPainelSeguranca,1000);
+
+// --- Mapa de IPs ---
+var mapaPage=1, mapaMap=null, mapaCluster=null, mapaSearchTimer=null;
+function debounceSearch(fn){clearTimeout(mapaSearchTimer);mapaSearchTimer=setTimeout(fn,400)}
+
+function initMapaMap(){
+  const el=document.getElementById('mapaMap');
+  if(!el||!L)return;
+  if(mapaMap){mapaMap.invalidateSize();return}
+  mapaMap=L.map('mapaMap',{center:[-14.235,-51.925],zoom:3,zoomControl:true,attributionControl:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(mapaMap);
+  mapaCluster=L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:50,spiderfyOnMaxZoom:true,showCoverageOnHover:false,zoomToBoundsOnClick:true,iconCreateFunction:function(c){var n=c.getChildCount();return L.divIcon({html:'<div style="background:rgba(6,182,212,.2);border:2px solid rgba(6,182,212,.5);color:#22d3ee;width:'+(n>99?44:n>9?36:30)+'px;height:'+(n>99?44:n>9?36:30)+'px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">'+n+'</div>',iconSize:L.point(40,40),className:''})}});
+  mapaMap.addLayer(mapaCluster);
+}
+
+function carregarMapa(){
+  const ip=document.getElementById('mapaSearchIp').value.trim();
+  const country=document.getElementById('mapaSearchCountry').value.trim();
+  const threat=document.getElementById('mapaFilterThreat').value;
+  const params=new URLSearchParams({page:mapaPage,per_page:200});
+  if(ip)params.set('ip',ip);
+  if(country)params.set('country',country);
+  if(threat)params.set('threat',threat);
+  fetch('/api/traffic/search?'+params.toString()).then(r=>r.json()).then(d=>{
+    document.getElementById('mapaTotal').textContent=d.total+' eventos';
+    document.getElementById('mapaPageInfo').textContent='Pagina '+d.page+' de '+d.pages;
+    document.getElementById('mapaPrevBtn').disabled=!d.has_prev;
+    document.getElementById('mapaNextBtn').disabled=!d.has_next;
+    if(!mapaMap){initMapaMap();setTimeout(()=>carregarMapa(),200);return}
+    mapaCluster.clearLayers();
+    const valid=d.events.filter(e=>e.lat&&e.lng);
+    if(valid.length===0){
+      document.getElementById('mapaDetail').innerHTML='<div class="text-center py-12 text-gray-600"><i class="fas fa-search text-4xl mb-3 opacity-30"></i><p class="text-sm">Nenhum resultado</p></div>';
+      return
+    }
+    valid.forEach(e=>{
+      const color=e.is_tor?'#ef4444':e.is_vpn?'#f59e0b':e.is_bot?'#8b5cf6':'#22d3ee';
+      const marker=L.circleMarker([e.lat,e.lng],{radius:7,color:color,fillColor:color,fillOpacity:0.6,weight:2,opacity:0.9});
+      marker.bindPopup('<div style="min-width:180px;color:#e5e7eb"><b style="color:'+color+'">'+e.ip+'</b><br><span style="color:#6b7280">'+e.country+' '+e.city+'</span><br><span style="color:#6b7280">'+e.provider+'</span><br>'+threatIcon(e)+'<br><span style="color:#4b5563;font-size:10px">'+e.created_at+'</span></div>');
+      marker.on('click',function(){mostrarDetalheIP(e)});
+      mapaCluster.addLayer(marker);
+    });
+    if(valid.length>0)mapaMap.fitBounds(mapaCluster.getBounds(),{padding:[40,40],maxZoom:12});
+  });
+}
+
+function threatIcon(e){
+  if(e.is_tor)return '<span style="color:#ef4444">🔴 TOR</span>';
+  if(e.is_vpn)return '<span style="color:#f59e0b">🟡 VPN</span>';
+  if(e.is_bot)return '<span style="color:#8b5cf6">🤖 Bot</span>';
+  return '<span style="color:#22d3ee">🟢 Normal</span>';
+}
+
+function mostrarDetalheIP(e){
+  document.getElementById('mapaDetail').innerHTML=
+    '<div class="space-y-3">'+
+    '<div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center"><i class="fas fa-network-wired text-cyan-400 text-xs"></i></div><div><p class="text-sm font-bold text-white font-mono">'+e.ip+'</p><p class="text-[10px] text-gray-500">'+e.created_at+'</p></div></div>'+
+    '<hr class="border-white/5">'+
+    '<div class="grid grid-cols-2 gap-2 text-xs"><div><p class="text-gray-500">Pais</p><p class="text-white">'+e.country+'</p></div><div><p class="text-gray-500">Cidade</p><p class="text-white">'+e.city+'</p></div></div>'+
+    '<div><p class="text-xs text-gray-500">Provedor</p><p class="text-xs text-white">'+e.provider+'</p></div>'+
+    '<div><p class="text-xs text-gray-500">Ameaca</p><p class="text-xs">'+threatIcon(e)+'</p></div>'+
+    '<div><p class="text-xs text-gray-500">Path</p><p class="text-xs text-white break-all font-mono">'+e.path+'</p></div>'+
+    (e.lat&&e.lng?'<div><p class="text-xs text-gray-500">Coordenadas</p><p class="text-xs text-white font-mono">'+e.lat+', '+e.lng+'</p></div>':'')+
+    '<a href="https://www.google.com/maps?q='+e.lat+','+e.lng+'" target="_blank" class="btn btn-ghost text-xs w-full justify-center"><i class="fas fa-external-link-alt"></i> Ver no Google Maps</a>'+
+    '</div>';
+}
 
 // --- Terminal Aprimorado ---
 (function(){
