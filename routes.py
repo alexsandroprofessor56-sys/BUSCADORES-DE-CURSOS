@@ -611,7 +611,9 @@ def api_favoritar(id):
     email = session["site_user_email"]
     user = User.query.filter_by(username=email).first()
     if not user:
-        return jsonify({"success": False, "error": "user_not_found"}), 404
+        user = User(username=email, password="")
+        db.session.add(user)
+        db.session.commit()
     curso = db.session.get(Curso, id)
     if not curso:
         return jsonify({"success": False, "error": "not_found"}), 404
