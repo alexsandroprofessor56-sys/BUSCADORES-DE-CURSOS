@@ -75,12 +75,12 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
       <span class="font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
     </div>
     <nav class="space-y-1 flex-1">
-      <a href="#" onclick="showTab('dashboard')" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 text-sm" data-tab="dashboard"><i class="fas fa-chart-pie w-4 text-center text-cyan-400"></i> Dashboard</a>
-      <a href="#" onclick="showTab('cursos')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="cursos"><i class="fas fa-graduation-cap w-4 text-center"></i> Cursos</a>
+      <a href="#" onclick="showTab('dashboard')" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 text-sm" data-tab="dashboard"><i class="fas fa-chart-pie w-4 text-center text-cyan-400"></i> Dashboard <span class="ml-auto text-[10px] text-gray-700 font-mono">[1]</span></a>
+      <a href="#" onclick="showTab('cursos')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="cursos"><i class="fas fa-graduation-cap w-4 text-center"></i> Cursos <span class="ml-auto text-[10px] text-gray-700 font-mono">[2]</span></a>
       <a href="/admin/crawler" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400"><i class="fas fa-robot w-4 text-center"></i> Crawler</a>
-      <a href="#" onclick="showTab('ips')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="ips"><i class="fas fa-shield-halved w-4 text-center"></i> IPs Banidos</a>
-      <a href="#" onclick="showTab('terminal')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="terminal"><i class="fas fa-terminal w-4 text-center"></i> Terminal</a>
-      <a href="#" onclick="showTab('seguranca')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="seguranca"><i class="fas fa-lock w-4 text-center"></i> Segurança</a>
+      <a href="#" onclick="showTab('ips')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="ips"><i class="fas fa-shield-halved w-4 text-center"></i> IPs Banidos <span class="ml-auto text-[10px] text-gray-700 font-mono">[3]</span></a>
+      <a href="#" onclick="showTab('terminal')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="terminal"><i class="fas fa-terminal w-4 text-center"></i> Terminal <span class="ml-auto text-[10px] text-gray-700 font-mono">[4]</span></a>
+      <a href="#" onclick="showTab('seguranca')" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-400" data-tab="seguranca"><i class="fas fa-lock w-4 text-center"></i> Segurança <span class="ml-auto text-[10px] text-gray-700 font-mono">[5]</span></a>
     </nav>
     <div class="space-y-1 pt-4 border-t border-white/5">
       <a href="/" class="sidebar-link flex items-center gap-3 px-3 py-2.5 text-sm text-gray-500 hover:text-gray-300"><i class="fas fa-arrow-left w-4 text-center"></i> Voltar</a>
@@ -281,7 +281,10 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
 </div>
 
 <script>
-var tChart;
+const TABS = ['dashboard','cursos','ips','terminal','seguranca'];
+const TAB_KEYS = {1:'dashboard',2:'cursos',3:'ips',4:'terminal',5:'seguranca'};
+var tChart, liveMap = null, spikeChartInstance = null, mapMarkers = [];
+
 const tCtx=document.getElementById('trafficChart')?.getContext('2d');
 if(tCtx){const g=tCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(6,182,212,0.25)');g.addColorStop(.5,'rgba(6,182,212,0.08)');g.addColorStop(1,'rgba(6,182,212,0)');tChart=new Chart(tCtx,{type:'line',data:{labels:Array(20).fill(''),datasets:[{label:'Acessos',data:Array(20).fill(0),borderColor:'#06b6d4',backgroundColor:g,fill:!0,tension:.4,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#22d3ee',pointHoverBorderColor:'#fff',borderWidth:2}]},options:{responsive:!0,interaction:{intersect:!1,mode:'index'},plugins:{legend:{display:!1},tooltip:{enabled:!0,backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:10}},scales:{x:{display:!1,grid:{display:!1}},y:{beginAtZero:!0,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:10},maxTicksLimit:5}}},animation:{duration:800,easing:'easeOutQuart'}}})}
 const pCtx=document.getElementById('platformChart')?.getContext('2d');
@@ -289,27 +292,34 @@ if(pCtx){const d={};{% for curso in cursos %}const p='{{ curso.plataforma or "Ou
 const rCtx=document.getElementById('priceChart')?.getContext('2d');
 if(rCtx){let g=0,b=0,p=0;{% for curso in cursos %}{% if curso.preco_tipo == 'gratuito' %}g++{% elif curso.preco_tipo == 'barato' %}b++{% else %}p++{% endif %}{% endfor %};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[g,b,p],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const socket=io();socket.on('sys_stats',()=>{const e=document.getElementById('liveUsers');if(e)e.textContent=Math.floor(Math.random()*15+3)});socket.on('novo_clique',()=>{if(tChart){const d=tChart.data.datasets[0].data;d.push(1);if(d.length>20)d.shift();tChart.update('none')}});
-function carregarSeguranca(){fetch('/api/security/events').then(r=>r.json()).then(events=>{const c=document.getElementById('securityLogs');if(!c)return;if(events.length===0){c.innerHTML='<div class="text-center py-8"><div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';return}c.innerHTML=events.map(e=>{const cl=e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400',ic=e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';return`<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${ic} text-[10px] mt-0.5 ${cl}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${cl} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`}).join('')})};carregarSeguranca();
 
-var liveMap = null;
-function initMap() {
-  const el = document.getElementById('liveMap');
-  if(!el || !L) return;
-  if(liveMap) { liveMap.invalidateSize(); return; }
-  liveMap = L.map('liveMap', { center: [-14.235, -51.925], zoom: 4, zoomControl: false, attributionControl: false });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(liveMap);
-}
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(initMap, 500);
+document.addEventListener('keydown',function(e){
+  if(e.altKey||e.ctrlKey||e.metaKey)return;
+  if(e.key>='1'&&e.key<='5'&&!e.target.closest('input,textarea')){e.preventDefault();showTab(TAB_KEYS[e.key])}
 });
+document.addEventListener('DOMContentLoaded',function(){setTimeout(initMap,500)});
+
 function showTab(n){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
-  document.getElementById('tab-'+n).classList.remove('hidden');
+  document.querySelectorAll('.tab-content').forEach(t=>{t.classList.add('hidden')});
+  const el=document.getElementById('tab-'+n);
+  if(el){el.classList.remove('hidden');el.style.animation='none';void el.offsetHeight;el.style.animation='fadeSlide .35s cubic-bezier(.22,1,.36,1) forwards'}
   document.querySelectorAll('.sidebar-link').forEach(t=>{t.classList.remove('active');t.style.background='';t.style.color='#9ca3af';const i=t.querySelector('i');if(i&&!i.classList.contains('fa-arrow-left')&&!i.classList.contains('fa-sign-out-alt'))i.style.color=''});
   const l=document.querySelector(`.sidebar-link[data-tab="${n}"]`);
   if(l){l.classList.add('active');l.style.background='linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';l.style.color='#06b6d4';const i=l.querySelector('i');if(i)i.style.color='#06b6d4'}
   if(n==='seguranca'){setTimeout(()=>{initMap();atualizarPainelSeguranca()},100)}
 }
+
+function initMap(){
+  const el=document.getElementById('liveMap');
+  if(!el||!L)return;
+  if(liveMap){liveMap.invalidateSize();return}
+  liveMap=L.map('liveMap',{center:[-14.235,-51.925],zoom:4,zoomControl:false,attributionControl:false,scrollWheelZoom:false});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(liveMap);
+  liveMap.on('click',function(){if(liveMap.scrollWheelZoom)liveMap.scrollWheelZoom.enable()});
+  liveMap.on('mouseover',function(){if(!liveMap.scrollWheelZoom)liveMap.scrollWheelZoom.enable()});
+}
+
+function carregarSeguranca(){fetch('/api/security/events').then(r=>r.json()).then(events=>{const c=document.getElementById('securityLogs');if(!c)return;if(events.length===0){c.innerHTML='<div class="text-center py-8"><div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';return}c.innerHTML=events.map(e=>{const cl=e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400',ic=e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';return`<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${ic} text-[10px] mt-0.5 ${cl}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${cl} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`}).join('')})};carregarSeguranca();
 
 function atualizarPainelSeguranca(){
   fetch('/api/lockdown/status').then(r=>r.json()).then(s=>{
@@ -322,19 +332,19 @@ function atualizarPainelSeguranca(){
     const wlCount=document.getElementById('whitelistCount');
     if(s.active){
       modeEl.textContent=s.auto?'AUTO-BLOQUEADO':'LOCKDOWN MANUAL';
-      badge.textContent=s.auto?'🚨 AUTO':'🔒 MANUAL';
+      badge.textContent=s.auto?'\uD83D\uDEA8 AUTO':'\uD83D\uDD12 MANUAL';
       badge.className='text-xs px-3 py-1 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30';
       icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400';
       icon.innerHTML='<i class="fas fa-shield-halved text-sm"></i>';
     } else if(s.disabled){
       modeEl.textContent='DESABILITADO';
-      badge.textContent='⛔ OFF';
+      badge.textContent='\u26D4 OFF';
       badge.className='text-xs px-3 py-1 rounded-full font-bold bg-gray-500/20 text-gray-400 border border-gray-500/30';
       icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-gray-400/20 to-gray-600/10 flex items-center justify-center text-gray-400';
       icon.innerHTML='<i class="fas fa-ban text-sm"></i>';
     } else {
       modeEl.textContent='NORMAL';
-      badge.textContent='✅ LIVRE';
+      badge.textContent='\u2705 LIVRE';
       badge.className='text-xs px-3 py-1 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
       icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-green-400/20 to-green-600/10 flex items-center justify-center text-green-400';
       icon.innerHTML='<i class="fas fa-shield-halved text-sm"></i>';
@@ -366,10 +376,7 @@ function whitelistAdd(){
   if(!ip)return;
   fetch('/api/whitelist/add',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({ip})}).then(r=>r.json()).then(d=>{inp.value='';atualizarPainelSeguranca();Swal.fire({icon:'success',title:'Adicionado!',text:d.message,timer:1500,showConfirm:false,background:'#0a0f16',color:'#e5e7eb'})});
 }
-
-function whitelistRemove(ip){
-  fetch('/api/whitelist/remove',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({ip})}).then(r=>r.json()).then(()=>atualizarPainelSeguranca());
-}
+function whitelistRemove(ip){fetch('/api/whitelist/remove',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({ip})}).then(r=>r.json()).then(()=>atualizarPainelSeguranca());}
 
 function lockdownToggle(state){
   const labels={on:'Ativar lockdown?',off:'Desativar lockdown?',disabled:'Desabilitar protecao auto?'};
@@ -381,12 +388,11 @@ function renderVisitorTable(ips){
   if(!el)return;
   if(!ips||ips.length===0){el.innerHTML='<div class="text-gray-600 text-xs text-center py-4">Nenhum visitante nos ultimos 5 min</div>';return}
   el.innerHTML=ips.slice(0,20).map(ip=>{
-    const threat=ip.is_tor?'🔴 TOR':ip.is_vpn?'🟡 VPN':ip.is_bot?'🤖 Bot':'🟢 Normal';
+    const threat=ip.is_tor?'\uD83D\uDD34 TOR':ip.is_vpn?'\uD83D\uDFE1 VPN':ip.is_bot?'\uD83E\uDD16 Bot':'\uD83D\uDFE2 Normal';
     return `<div class="flex items-center justify-between py-1.5 px-2 rounded hover:bg-white/[0.02] border-b border-white/5 last:border-0"><span class="font-mono text-[10px] text-gray-300">${ip.ip}</span><span class="text-[10px] text-gray-500">${ip.country||'?'} ${ip.city||''}</span><span class="text-[10px]">${threat}</span><span class="text-[10px] text-gray-600">${ip.count}x</span></div>`;
   }).join('');
 }
 
-var spikeChartInstance = null;
 function renderSpikeChart(ips){
   const ctx=document.getElementById('spikeChart');
   if(!ctx)return;
@@ -397,7 +403,6 @@ function renderSpikeChart(ips){
   spikeChartInstance = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Reqs',data,backgroundColor:bg,borderRadius:4,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:8,callbacks:{label:function(c){const ip=ips[c.dataIndex];return`${ip.ip} - ${ip.country} ${ip.city} - ${ip.count} reqs`}}}},scales:{x:{display:false,grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:9},maxTicksLimit:4}}},animation:{duration:300}}});
 }
 
-var mapMarkers = [];
 function updateMapMarkers(ips){
   if(!liveMap)return;
   mapMarkers.forEach(m=>liveMap.removeLayer(m));
@@ -408,16 +413,71 @@ function updateMapMarkers(ips){
     const color=ip.is_tor?'#ef4444':ip.is_vpn?'#f59e0b':ip.is_bot?'#8b5cf6':'#22d3ee';
     const size=Math.min(12,4+ip.count*2);
     const marker=L.circleMarker([ip.lat,ip.lng],{radius:size,color:color,fillColor:color,fillOpacity:0.5,weight:1,opacity:0.8});
-    marker.bindPopup(`<b>${ip.ip}</b><br>${ip.country} ${ip.city}<br>${ip.provider||''}<br>${ip.is_tor?'🔴 TOR':ip.is_vpn?'🟡 VPN':ip.is_bot?'🤖 Bot':'🟢 Normal'}<br>${ip.count} requisicoes`);
+    marker.bindPopup(`<b>${ip.ip}</b><br>${ip.country} ${ip.city}<br>${ip.provider||''}<br>${ip.is_tor?'\uD83D\uDD34 TOR':ip.is_vpn?'\uD83D\uDFE1 VPN':ip.is_bot?'\uD83E\uDD16 Bot':'\uD83D\uDFE2 Normal'}<br>${ip.count} requisicoes`);
     marker.addTo(liveMap);
     mapMarkers.push(marker);
   });
   if(valid.length>0)liveMap.fitBounds(mapMarkers.map(m=>m.getLatLng()),{padding:[30,30],maxZoom:10});
 }
 
-setInterval(atualizarPainelSeguranca, 8000);
-setTimeout(atualizarPainelSeguranca, 1000);
-const to=document.getElementById('terminalOutput'),ti=document.getElementById('terminalInput');to.textContent='Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos.\n\n';ti.addEventListener('keydown',function(e){if(e.key==='Enter'){const c=this.value.trim();this.value='';to.textContent+=`root@radar:~$ ${c}\n`;if(c==='help'){to.textContent+='Comandos: status, analytics, logs, backup, crawler, links, lockdown, whitelist\n'}else if(c){fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:c})}).then(r=>r.json()).then(d=>{to.textContent+=(d.output||'OK')+'\n';to.scrollTop=to.scrollHeight}).catch(()=>{})}to.scrollTop=to.scrollHeight}});
+setInterval(atualizarPainelSeguranca,8000);
+setTimeout(atualizarPainelSeguranca,1000);
+
+// --- Terminal Aprimorado ---
+(function(){
+  const to=document.getElementById('terminalOutput');
+  const ti=document.getElementById('terminalInput');
+  if(!to||!ti)return;
+  const history=[];
+  let histIdx=-1;
+  const CMD_LIST=['help','status','geoip','logs','backup create','backup telegram','backup daily','cleanup old','users online','security events','ban ip','unban ip','lockdown on','lockdown off','lockdown status','lockdown disabled','whitelist add','whitelist remove','whitelist list','maintenance on','maintenance off','crawler start','crawler stop','crawler run','links check','analytics'];
+  let autoIdx=-1;
+
+  to.textContent='\u2554\u2550\u2550\u2550 TERMINAL RADAR ELITE \u2550\u2550\u2550\u2557\nBem-vindo! Digite "help" para comandos.\nUse Tab para autocomplete, setas para historico.\n\n';
+
+  ti.addEventListener('keydown',function(e){
+    const val=this.value.trim().toLowerCase();
+
+    if(e.key==='Tab'){
+      e.preventDefault();
+      if(!val)return;
+      const match=CMD_LIST.find(c=>c.startsWith(val));
+      if(match)this.value=match;
+      return;
+    }
+
+    if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(history.length===0)return;
+      if(histIdx<0)histIdx=history.length-1;
+      else if(histIdx>0)histIdx--;
+      this.value=history[histIdx];
+      return;
+    }
+    if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(histIdx>=0)histIdx++;
+      if(histIdx>=history.length){histIdx=-1;this.value='';return}
+      this.value=history[histIdx];
+      return;
+    }
+
+    if(e.key==='Enter'){
+      const c=this.value.trim();
+      this.value='';
+      if(c){history.push(c);histIdx=-1}
+      to.textContent+=`\nroot@radar:~$ ${c}\n`;
+      if(c){
+        fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:c})})
+        .then(r=>r.json()).then(d=>{
+          to.textContent+=(d.output||'OK')+'\n';
+          to.scrollTop=to.scrollHeight;
+        }).catch(()=>{to.textContent+='Erro de conexao\n'})
+      }
+      to.scrollTop=to.scrollHeight;
+    }
+  });
+})();
 </script>
 </body>
 </html>

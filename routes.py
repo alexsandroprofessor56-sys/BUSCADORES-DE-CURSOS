@@ -230,35 +230,58 @@ def _course_visual(curso):
     return curso
 
 
-def _terminal_help():
-    return "\n".join([
-        "Comandos disponíveis:",
-        "help",
-        "status",
-        "logs",
-        "backup create",
-        "backup telegram",
-        "backup daily",
-        "cleanup old",
-        "users online",
-        "ban ip <endereco>",
-        "unban ip <endereco>",
-        "maintenance on",
-        "maintenance off",
-        "crawler start",
-        "crawler stop",
-        "crawler run",
-        "links check",
-        "analytics",
-        "security events",
-        "lockdown on",
-        "lockdown off",
-        "lockdown status",
-        "lockdown disabled",
-        "whitelist add <ip>",
-        "whitelist remove <ip>",
-        "whitelist list",
-    ])
+COMMANDS = {
+    "help": ["help [comando]", "Mostra esta ajuda ou detalhes de um comando"],
+    "status": ["status", "CPU, RAM, disco, cursos, bans, usuario logado"],
+    "geoip": ["geoip <ip>", "Localiza um IP: pais, cidade, provedor, mapa"],
+    "logs": ["logs", "Ultimas 80 linhas do log de acesso"],
+    "backup": ["backup create|telegram|daily", "Criar, enviar ou ver status do backup"],
+    "cleanup": ["cleanup old", "Remove registros antigos (acessos, eventos)"],
+    "users": ["users online", "Mostra usuarios online"],
+    "ban": ["ban ip <endereco>", "Bane um IP manualmente"],
+    "unban": ["unban ip <endereco>", "Remove banimento de um IP"],
+    "maintenance": ["maintenance on|off", "Ativa/desativa modo manutencao"],
+    "crawler": ["crawler start|stop|run", "Controla ou executa o crawler"],
+    "links": ["links check", "Verifica links quebrados dos cursos"],
+    "analytics": ["analytics", "DAU, MAU, retencao, top cursos"],
+    "security": ["security events", "Ultimos 20 eventos de seguranca"],
+    "lockdown": ["lockdown on|off|status|disabled", "Controla o lockdown do sistema"],
+    "whitelist": ["whitelist add|remove|list <ip>", "Gerencia IPs sempre permitidos"],
+}
+
+
+def _terminal_help(cmd=None):
+    if cmd:
+        entry = COMMANDS.get(cmd)
+        if entry:
+            return f"{entry[0]}\n  {entry[1]}"
+        return f"Comando desconhecido: {cmd}. Digite 'help' para a lista completa."
+
+    groups = [
+        ("SISTEMA", ["status", "logs", "users online"]),
+        ("BACKUP", ["backup create", "backup telegram", "backup daily", "cleanup old"]),
+        ("SEGURANCA", ["ban ip", "unban ip", "lockdown on", "lockdown off", "lockdown status", "lockdown disabled", "whitelist add", "whitelist remove", "whitelist list", "security events"]),
+        ("REDE", ["geoip"]),
+        ("CRAWLER", ["crawler start", "crawler stop", "crawler run", "links check"]),
+        ("ANALYTICS", ["analytics"]),
+        ("MANUTENCAO", ["maintenance on", "maintenance off"]),
+        ("AJUDA", ["help", "help <comando>"]),
+    ]
+
+    lines = ["\u2554\u2550\u2550\u2550 TERMINAL RADAR ELITE \u2550\u2550\u2550\u2557", ""]
+    for group_name, cmds in groups:
+        lines.append(f"  \u2502 {group_name}")
+        lines.append(f"  \u2502" + "\u2500" * 30)
+        for c in cmds:
+            entry = COMMANDS.get(c.split()[0])
+            if entry:
+                key = c.split()[0]
+                display = entry[0]
+                desc = entry[1]
+                lines.append(f"  \u2502   {display:<35} {desc}")
+        lines.append("")
+    lines.append("\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")
+    return "\n".join(lines)
 
 
 def _set_config(chave, valor):
@@ -278,6 +301,8 @@ def _run_internal_command(command):
     action = parts[0].lower()
 
     if action == "help":
+        if len(parts) >= 2:
+            return _terminal_help(parts[1].lower())
         return _terminal_help()
 
     if action == "status":
@@ -387,6 +412,19 @@ def _run_internal_command(command):
             f"Retenção estimada: {data['retention']}%",
             "Top cursos:",
             *[f"- {item['name']}: {item['clicks']} clique(s)" for item in data["top_courses"][:8]],
+        ])
+
+    if action == "geoip" and len(parts) == 2:
+        ip = parts[1]
+        geo = lookup_ip(ip)
+        return "\n".join([
+            f"IP: {ip}",
+            f"Pais: {geo.get('country', '?')}",
+            f"Cidade: {geo.get('city', '?')}",
+            f"Provedor: {geo.get('provider', '?')}",
+            f"Latitude: {geo.get('latitude', '?')}",
+            f"Longitude: {geo.get('longitude', '?')}",
+            f"Mapa: https://www.google.com/maps?q={geo.get('latitude', 0)},{geo.get('longitude', 0)}",
         ])
 
     if action == "security" and len(parts) == 2 and parts[1].lower() == "events":
