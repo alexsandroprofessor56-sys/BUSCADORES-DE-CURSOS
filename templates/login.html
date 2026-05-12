@@ -40,6 +40,9 @@
       {% if erro %}
       <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3.5 rounded-xl"><i class="fas fa-exclamation-circle"></i> {{ erro }}</div>
       {% endif %}
+      <div style="position:absolute;left:-9999px;opacity:0" aria-hidden="true">
+        <input type="text" name="_hp" tabindex="-1" autocomplete="off">
+      </div>
       <div>
         <label class="text-[11px] text-gray-500 uppercase tracking-widest font-semibold flex items-center gap-1.5 mb-1.5"><i class="fas fa-user text-[10px]"></i> Usuário</label>
         <input type="text" name="username" required class="input-elite" placeholder="admin">

@@ -16,11 +16,27 @@ from core.models import AccessEvent, IPBanido, SecurityEvent
 
 BOT_MARKERS = (
     "bot", "crawler", "spider", "scrapy", "curl", "wget", "python-requests",
-    "httpx", "headless", "selenium", "playwright",
+    "httpx", "headless", "selenium", "playwright", "scanner", "nikto",
+    "sqlmap", "nmap", "nessus", "openvas", "acunetix", "burp", "zap",
+    "masscan", "zgrab", "cve-", "exploit", "metasploit", "hydra",
+    "medusa", "ncrack", "thc-", "bruteforce", "dirbuster", "gobuster",
+    "wfuzz", "ffuf", "arachni", "w3af", "netsparker", "appscan",
+    "webinspect", "probely", "detectify", "pentest", "xsstrike",
+    "commix", "jwt_tool", "hashcat", "john",
 )
 
 TOR_EXIT_IPS = {ip.strip() for ip in os.environ.get("TOR_EXIT_IPS", "").split(",") if ip.strip()}
-VPN_PROVIDER_MARKERS = ("hosting", "cloud", "vpn", "proxy", "datacenter", "digitalocean", "ovh", "amazon", "google cloud")
+VPN_PROVIDER_MARKERS = ("hosting", "cloud", "vpn", "proxy", "datacenter", "digitalocean", "ovh", "amazon", "google cloud", "azure", "oracle cloud", "vultr", "linode", "scaleway", "hetzner")
+
+MALICIOUS_PATHS = {
+    "/admin", "/wp-admin", "/wp-login", "/xmlrpc.php", "wp-", "cgi-bin",
+    ".env", ".git", ".svn", "config.php", "db_admin", "phpmyadmin",
+    "mysql", "administrator", "joomla", "wordpress", "backup",
+    "shell", "cmd", "exec", "eval", "concat", "union", "select",
+    "../", "..\\", "%00", "null", "etc/passwd", "boot.ini",
+}
+
+ADMIN_HONEYPOT_FIELD = "_hp"
 
 
 def get_client_ip(request):
@@ -137,6 +153,41 @@ def verify_totp(secret, code):
 def otpauth_uri(username, secret):
     issuer = "EducaLivre"
     return f"otpauth://totp/{issuer}:{username}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30"
+
+
+def is_malicious_path(path):
+    lower = (path or "").lower()
+    return any(marker in lower for marker in MALICIOUS_PATHS)
+
+
+def is_honeypot_filled(form_data):
+    return bool(form_data.get(ADMIN_HONEYPOT_FIELD))
+
+
+def check_admin_ip_whitelist(ip):
+    whitelist = os.environ.get("ADMIN_IP_WHITELIST", "")
+    if not whitelist:
+        return True
+    allowed = {i.strip() for i in whitelist.split(",") if i.strip()}
+    return ip in allowed
+
+
+def validate_password(password):
+    if len(password) < 8:
+        return False, "Senha deve ter pelo menos 8 caracteres"
+    if not any(c.isupper() for c in password):
+        return False, "Senha deve ter pelo menos 1 letra maiuscula"
+    if not any(c.islower() for c in password):
+        return False, "Senha deve ter pelo menos 1 letra minuscula"
+    if not any(c.isdigit() for c in password):
+        return False, "Senha deve ter pelo menos 1 numero"
+    return True, ""
+
+
+def regenerate_session():
+    session.regenerate = True
+    if hasattr(session, "regenerate"):
+        session.regenerate()
 
 
 def record_access(request, geo):

@@ -25,17 +25,23 @@ from services.lockdown import (
     traffic_summary,
 )
 from services.security import (
+    ADMIN_HONEYPOT_FIELD,
     auto_ban,
+    check_admin_ip_whitelist,
     generate_totp_secret,
     get_client_ip,
     is_bot_user_agent,
+    is_honeypot_filled,
+    is_malicious_path,
     is_probable_vpn,
     is_tor_ip,
     log_security_event,
     otpauth_uri,
     recent_login_failures,
     record_access,
+    regenerate_session,
     send_telegram_notification,
+    validate_password,
     verify_totp,
 )
 
@@ -94,17 +100,35 @@ def security_gate():
     if request.endpoint == "static" or request.path.startswith("/socket.io/"):
         return None
     ip = get_client_ip(request)
+    ua = request.headers.get("User-Agent", "")
+
+    if is_malicious_path(request.path):
+        log_security_event(ip, "malicious_path", f"Path malicioso detectado: {request.path}", "critical", ua)
+        auto_ban(ip, f"Path malicioso: {request.path}", ua)
+        abort(403)
+
+    if is_honeypot_filled(request.form):
+        log_security_event(ip, "honeypot", "Honeypot preenchido - bot detectado", "critical", ua)
+        auto_ban(ip, "Honeypot preenchido por bot", ua)
+        return "OK", 200
+
     if IPBanido.query.filter_by(ip=ip).first():
         abort(403)
+
+    if not check_admin_ip_whitelist(ip) and not request.path.startswith("/api/"):
+        log_security_event(ip, "admin_ip_blocked", f"IP {ip} nao autorizado para admin", "warning", ua)
+        if request.path.startswith("/admin/"):
+            abort(403)
+
     if is_locked_down(ip) and ip not in _whitelist_set():
-        log_security_event(ip, "lockdown_blocked", f"Bloqueado pelo lockdown em {request.path}", "warning", request.headers.get("User-Agent", ""))
+        log_security_event(ip, "lockdown_blocked", f"Bloqueado pelo lockdown em {request.path}", "warning", ua)
         if request.path.startswith("/api/"):
             return jsonify({"error": "lockdown", "message": "Sistema em lockdown. Tente novamente mais tarde."}), 503
         abort(503)
     if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.path.startswith("/api/"):
         if request.path not in {"/admin/login", "/login/google", "/login", "/authorize", "/admin/terminal"}:
             if not _csrf_valid():
-                log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", request.headers.get("User-Agent", ""))
+                log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", ua)
                 abort(400)
     return None
 
@@ -562,14 +586,29 @@ def admin_login():
     if request.method == "POST":
         ip = get_client_ip(request)
         user_agent = request.headers.get("User-Agent", "")
+
+        if is_honeypot_filled(request.form):
+            log_security_event(ip, "honeypot_login", "Bot detectado no login admin", "critical", user_agent)
+            return "OK", 200
+
+        limiter_ok = getattr(request, 'max_cost', None) is not None
+        try:
+            from services.analytics import check_rate_limit
+        except ImportError:
+            pass
+
         user = User.query.filter_by(username=request.form.get("username")).first()
         if user and bcrypt.check_password_hash(user.password, request.form.get("password")):
             if user.otp_enabled and not verify_totp(user.otp_secret, request.form.get("otp_code")):
                 log_security_event(ip, "login_2fa_failed", f"2FA inválido para {user.username}", "warning", user_agent)
                 return render_template("login.html", erro="Código 2FA inválido.")
             login_user(user)
+            session.permanent = True
             session["_csrf_token"] = os.urandom(24).hex()
+            session["_login_time"] = datetime.now().isoformat(timespec="seconds")
             log_security_event(ip, "login_success", f"Login administrativo: {user.username}", "info", user_agent)
+            if user.otp_enabled:
+                session["_2fa_verified"] = True
             return redirect(url_for("admin_bp.admin_dashboard"))
         log_security_event(ip, "login_failed", "Falha de login administrativo", "warning", user_agent)
         if recent_login_failures(ip) >= int(os.environ.get("BRUTE_FORCE_LIMIT", "5")):
@@ -691,6 +730,8 @@ def setup_2fa():
 @admin_bp.route("/admin/dashboard")
 @login_required
 def admin_dashboard():
+    if current_user.otp_enabled and not session.get("_2fa_verified"):
+        return redirect(url_for("admin_bp.admin_login"))
     cursos = db.session.execute(db.select(Curso).order_by(Curso.cliques.desc())).scalars().all()
     bans = IPBanido.query.all()
     ld_status = lockdown_status()

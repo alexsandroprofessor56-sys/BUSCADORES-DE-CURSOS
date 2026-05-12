@@ -1,7 +1,8 @@
 import os
 import secrets
+from datetime import timedelta
 
-from flask import Flask, session
+from flask import Flask, request, session
 from flask_bcrypt import Bcrypt
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -24,12 +25,25 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', '0') == '1'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', '1') == '1'
 app.config['REMEMBER_COOKIE_HTTPONLY'] = True
 app.config['REMEMBER_COOKIE_SECURE'] = app.config['SESSION_COOKIE_SECURE']
 app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = 31536000  # 365 days
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '0'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    return response
 
 db.init_app(app)
 
@@ -55,6 +69,12 @@ socketio = SocketIO(
 Talisman(
     app,
     force_https=os.environ.get('FORCE_HTTPS', '0') == '1',
+    force_https_permanent=True,
+    strict_transport_security=True,
+    strict_transport_security_max_age=31536000,
+    strict_transport_security_include_subdomains=True,
+    frame_options='DENY',
+    referrer_policy='strict-origin-when-cross-origin',
     content_security_policy={
         'default-src': "'self'",
         'script-src': ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net", "https://unpkg.com"],
@@ -62,7 +82,12 @@ Talisman(
         'img-src': ["'self'", "data:", "https://www.google.com", "https://*.gstatic.com", "https://*.tile.openstreetmap.org"],
         'connect-src': ["'self'", "ws:", "wss:"],
         'font-src': ["'self'", "https://cdnjs.cloudflare.com"],
+        'form-action': "'self'",
+        'base-uri': "'self'",
+        'object-src': "'none'",
     },
+    content_security_policy_nonce_in=None,
+    x_content_type_options='nosniff',
 )
 
 from routes import admin_bp, init_oauth

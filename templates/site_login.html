@@ -57,6 +57,9 @@ h1 span{background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-cl
   {% endif %}
 
   <form method="POST" action="{{ url_for('admin_bp.public_login') }}">
+    <div style="position:absolute;left:-9999px;opacity:0" aria-hidden="true">
+      <input type="text" name="_hp" tabindex="-1" autocomplete="off">
+    </div>
     <div class="field">
       <label>Email</label>
       <input type="email" name="email" placeholder="seu@email.com" required autofocus>
