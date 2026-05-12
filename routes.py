@@ -373,16 +373,22 @@ def _run_internal_command(command):
 
 @admin_bp.route("/")
 def index():
-    if not _site_logged_in():
-        return redirect(url_for("admin_bp.public_login"))
     page = request.args.get("page", 1, type=int)
     per_page = 24
     q = request.args.get("q", "").strip()
     area = request.args.get("area", "").strip()
     preco = request.args.get("preco", "").strip()
     nivel = request.args.get("nivel", "").strip()
+    saved = request.args.get("saved", "").strip()
 
     query = db.select(Curso).where(Curso.ativo.is_(True))
+
+    if saved == "1" and _site_logged_in():
+        user = User.query.filter_by(username=session["site_user_email"]).first()
+        if user and user.favoritos:
+            query = query.where(Curso.id.in_([c.id for c in user.favoritos]))
+        else:
+            query = query.where(Curso.id == -1)
 
     if q:
         like = f"%{q}%"
@@ -405,10 +411,16 @@ def index():
         for a in (c.areas or "").split(",") if a.strip()
     ))
 
+    favoritados = set()
+    if _site_logged_in():
+        user = User.query.filter_by(username=session["site_user_email"]).first()
+        if user:
+            favoritados = {c.id for c in user.favoritos}
+
     return render_template("index.html",
         cursos=cursos, pagination=pagination,
         q=q, area=area, preco=preco, nivel=nivel,
-        areas=areas_list)
+        areas=areas_list, favoritados=favoritados, saved=saved)
 
 @admin_bp.route("/admin/terminal", methods=["POST"])
 @login_required
@@ -594,10 +606,20 @@ def redirecionar_curso(id):
 def api_favoritar(id):
     if not _site_logged_in():
         return jsonify({"success": False, "error": "login_required"}), 401
+    email = session["site_user_email"]
+    user = User.query.filter_by(username=email).first()
+    if not user:
+        return jsonify({"success": False, "error": "user_not_found"}), 404
     curso = db.session.get(Curso, id)
     if not curso:
         return jsonify({"success": False, "error": "not_found"}), 404
-    return jsonify({"success": True})
+    if curso in user.favoritos:
+        user.favoritos.remove(curso)
+        db.session.commit()
+        return jsonify({"success": True, "action": "removed"})
+    user.favoritos.append(curso)
+    db.session.commit()
+    return jsonify({"success": True, "action": "added"})
 
 @admin_bp.route("/api/check_2fa")
 def api_check_2fa():
