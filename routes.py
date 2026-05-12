@@ -13,6 +13,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from core.models import AccessEvent, Config, Curso, IPBanido, LogAcesso, SecurityEvent, User
 from core import db
 from services.analytics import analytics_snapshot, recommend_courses
+from services.search import search_cursos, sync_one
 from services.backup import cleanup_after_backup, send_backup_to_telegram
 from services.crawler import check_broken_links, crawl_free_courses
 from services.geoip import lookup_ip
@@ -381,30 +382,56 @@ def index():
     nivel = request.args.get("nivel", "").strip()
     saved = request.args.get("saved", "").strip()
 
-    query = db.select(Curso).where(Curso.ativo.is_(True))
-
     if saved == "1" and _site_logged_in():
         user = User.query.filter_by(username=session["site_user_email"]).first()
         if user and user.favoritos:
-            query = query.where(Curso.id.in_([c.id for c in user.favoritos]))
+            favorito_ids = {c.id for c in user.favoritos}
+            query = db.select(Curso).where(Curso.id.in_(favorito_ids))
         else:
-            query = query.where(Curso.id == -1)
-
-    if q:
-        like = f"%{q}%"
-        query = query.where(
-            db.or_(Curso.nome.ilike(like), Curso.descricao.ilike(like), Curso.areas.ilike(like))
-        )
-    if area:
-        query = query.where(Curso.areas.ilike(f"%{area}%"))
-    if preco:
-        query = query.where(Curso.preco_tipo == preco)
-    if nivel:
-        query = query.where(Curso.nivel == nivel)
-
-    query = query.order_by(Curso.cliques.desc())
-    pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
-    cursos = [_course_visual(curso) for curso in pagination.items]
+            query = db.select(Curso).where(Curso.id == -1)
+        if q:
+            like = f"%{q}%"
+            query = query.where(
+                db.or_(Curso.nome.ilike(like), Curso.descricao.ilike(like), Curso.areas.ilike(like))
+            )
+        query = query.order_by(Curso.cliques.desc())
+        pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+        cursos = [_course_visual(curso) for curso in pagination.items]
+    elif q and os.environ.get("TYPESENSE_HOST"):
+        ts_result = search_cursos(q, page=page, per_page=per_page, area=area, preco=preco, nivel=nivel)
+        if ts_result and ts_result.get("hits"):
+            ids = [int(h["document"]["id"]) for h in ts_result["hits"]]
+            cursos_map = {c.id: c for c in Curso.query.filter(Curso.id.in_(ids)).all()}
+            cursos_ordenados = [cursos_map[i] for i in ids if i in cursos_map]
+            cursos = [_course_visual(c) for c in cursos_ordenados]
+            total = ts_result.get("found", len(cursos))
+        else:
+            cursos = []
+            total = 0
+        pagination = db.paginate(db.select(Curso).where(Curso.id == -1), page=1, per_page=per_page, error_out=False)
+        pagination.total = total
+        pagination.items = cursos
+        pagination.pages = max(1, (total + per_page - 1) // per_page)
+        pagination.has_prev = page > 1
+        pagination.has_next = page < pagination.pages
+        pagination.prev_num = page - 1 if page > 1 else None
+        pagination.next_num = page + 1 if page < pagination.pages else None
+    else:
+        query = db.select(Curso).where(Curso.ativo.is_(True))
+        if q:
+            like = f"%{q}%"
+            query = query.where(
+                db.or_(Curso.nome.ilike(like), Curso.descricao.ilike(like), Curso.areas.ilike(like))
+            )
+        if area:
+            query = query.where(Curso.areas.ilike(f"%{area}%"))
+        if preco:
+            query = query.where(Curso.preco_tipo == preco)
+        if nivel:
+            query = query.where(Curso.nivel == nivel)
+        query = query.order_by(Curso.cliques.desc())
+        pagination = db.paginate(query, page=page, per_page=per_page, error_out=False)
+        cursos = [_course_visual(curso) for curso in pagination.items]
 
     areas_list = sorted(set(
         a.strip() for c in Curso.query.with_entities(Curso.areas).all()
@@ -573,6 +600,10 @@ def redirecionar_curso(id):
     curso = db.session.get(Curso, id)
     if not curso: return "404", 404
     curso.cliques += 1
+    try:
+        sync_one(curso.id)
+    except Exception:
+        pass
     ip = get_client_ip(request)
     geo = lookup_ip(ip)
     db.session.add(LogAcesso(
