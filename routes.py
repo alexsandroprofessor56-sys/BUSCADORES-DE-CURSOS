@@ -17,6 +17,13 @@ from services.analytics import analytics_snapshot, recommend_courses
 from services.backup import cleanup_after_backup, send_backup_to_telegram
 from services.crawler import check_broken_links, crawl_free_courses
 from services.geoip import lookup_ip
+from services.lockdown import (
+    auto_lockdown_check,
+    is_locked_down,
+    lockdown_status,
+    toggle_lockdown,
+    traffic_summary,
+)
 from services.security import (
     auto_ban,
     generate_totp_secret,
@@ -88,12 +95,23 @@ def security_gate():
     ip = get_client_ip(request)
     if IPBanido.query.filter_by(ip=ip).first():
         abort(403)
+    if is_locked_down(ip) and ip not in _whitelist_set():
+        log_security_event(ip, "lockdown_blocked", f"Bloqueado pelo lockdown em {request.path}", "warning", request.headers.get("User-Agent", ""))
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "lockdown", "message": "Sistema em lockdown. Tente novamente mais tarde."}), 503
+        abort(503)
     if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.path.startswith("/api/"):
         if request.path not in {"/admin/login", "/login/google", "/login", "/authorize"}:
             if not _csrf_valid():
                 log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", request.headers.get("User-Agent", ""))
                 abort(400)
     return None
+
+
+def _whitelist_set():
+    import os
+    raw = os.environ.get("LOCKDOWN_WHITELIST", "")
+    return {ip.strip() for ip in raw.split(",") if ip.strip()}
 
 
 @admin_bp.after_app_request
@@ -232,6 +250,13 @@ def _terminal_help():
         "links check",
         "analytics",
         "security events",
+        "lockdown on",
+        "lockdown off",
+        "lockdown status",
+        "lockdown disabled",
+        "whitelist add <ip>",
+        "whitelist remove <ip>",
+        "whitelist list",
     ])
 
 
@@ -368,6 +393,57 @@ def _run_internal_command(command):
         if not events:
             return "Nenhum evento de segurança registrado."
         return "\n".join([f"[{e.created_at}] {e.severity} {e.event_type} {e.ip}: {e.message}" for e in events])
+
+    if action == "lockdown" and len(parts) == 2:
+        sub = parts[1].lower()
+        if sub == "status":
+            st = lockdown_status()
+            return "\n".join([
+                f"Lockdown: {st['mode']}",
+                f"Ativo: {'SIM' if st['active'] else 'NAO'}",
+                f"Automático: {'SIM' if st['auto'] else 'NAO'}",
+                f"Manual: {'SIM' if st['manual'] else 'NAO'}",
+                f"IPs agora: {st['ips_now']} (limite: {st['threshold']}/{st['window']}s)",
+                f"Whitelist: {', '.join(st['whitelist']) or 'vazia'}",
+            ])
+        if sub == "on":
+            toggle_lockdown("on")
+            return "Lockdown MANUAL ativado."
+        if sub == "off":
+            toggle_lockdown("off")
+            return "Lockdown desativado."
+        if sub == "disabled":
+            toggle_lockdown("disabled")
+            return "Lockdown desabilitado permanentemente."
+
+    if action == "whitelist" and len(parts) == 2 and parts[1].lower() == "list":
+        st = lockdown_status()
+        wl = st["whitelist"]
+        if not wl:
+            return "Whitelist vazia."
+        return "Whitelist:\n" + "\n".join(f"  {ip}" for ip in wl)
+
+    if action == "whitelist" and len(parts) == 3 and parts[1].lower() == "add":
+        ip = parts[2]
+        current = os.environ.get("LOCKDOWN_WHITELIST", "")
+        all_ips = {i.strip() for i in current.split(",") if i.strip()}
+        if ip in all_ips:
+            return f"IP {ip} já está na whitelist."
+        all_ips.add(ip)
+        os.environ["LOCKDOWN_WHITELIST"] = ",".join(sorted(all_ips))
+        log_security_event(ip, "whitelist_add", f"IP adicionado à whitelist", "info", "")
+        return f"IP {ip} adicionado à whitelist."
+
+    if action == "whitelist" and len(parts) == 3 and parts[1].lower() == "remove":
+        ip = parts[2]
+        current = os.environ.get("LOCKDOWN_WHITELIST", "")
+        all_ips = {i.strip() for i in current.split(",") if i.strip()}
+        if ip not in all_ips:
+            return f"IP {ip} não está na whitelist."
+        all_ips.discard(ip)
+        os.environ["LOCKDOWN_WHITELIST"] = ",".join(sorted(all_ips))
+        log_security_event(ip, "whitelist_remove", f"IP removido da whitelist", "info", "")
+        return f"IP {ip} removido da whitelist."
 
     return "Comando não permitido. Digite 'help' para ver os comandos disponíveis."
 
@@ -573,7 +649,8 @@ def setup_2fa():
 def admin_dashboard():
     cursos = db.session.execute(db.select(Curso).order_by(Curso.cliques.desc())).scalars().all()
     bans = IPBanido.query.all()
-    return render_template("admin.html", cursos=cursos, bans=bans)
+    ld_status = lockdown_status()
+    return render_template("admin.html", cursos=cursos, bans=bans, lockdown_status=ld_status)
 
 @admin_bp.route("/c/<int:id>")
 def redirecionar_curso(id):
@@ -680,6 +757,94 @@ def api_traffic():
         }
         for event in events
     ])
+
+
+@admin_bp.route("/api/traffic/summary")
+@login_required
+def api_traffic_summary():
+    minutes = request.args.get("minutes", 5, type=int)
+    return jsonify(traffic_summary(minutes=minutes))
+
+
+@admin_bp.route("/api/lockdown/status")
+@login_required
+def api_lockdown_status():
+    return jsonify(lockdown_status())
+
+
+@admin_bp.route("/api/lockdown/toggle", methods=["POST"])
+@login_required
+def api_lockdown_toggle():
+    data = request.get_json(silent=True) or {}
+    state = data.get("state", "")
+    if state not in ("on", "off", "disabled"):
+        return jsonify({"success": False, "error": "Estado inválido. Use: on, off, disabled"}), 400
+    ok = toggle_lockdown(state)
+    return jsonify({"success": ok, "status": lockdown_status()})
+
+
+@admin_bp.route("/api/whitelist/add", methods=["POST"])
+@login_required
+def api_whitelist_add():
+    data = request.get_json(silent=True) or {}
+    ip = (data.get("ip") or "").strip()
+    if not ip:
+        return jsonify({"success": False, "error": "IP obrigatório"}), 400
+    current = os.environ.get("LOCKDOWN_WHITELIST", "")
+    all_ips = {i.strip() for i in current.split(",") if i.strip()}
+    if ip in all_ips:
+        return jsonify({"success": True, "message": f"IP {ip} já está na whitelist"})
+    all_ips.add(ip)
+    os.environ["LOCKDOWN_WHITELIST"] = ",".join(sorted(all_ips))
+    log_security_event(ip, "whitelist_add", f"IP adicionado à whitelist via painel", "info", "")
+    return jsonify({"success": True, "message": f"IP {ip} adicionado à whitelist"})
+
+
+@admin_bp.route("/api/whitelist/remove", methods=["POST"])
+@login_required
+def api_whitelist_remove():
+    data = request.get_json(silent=True) or {}
+    ip = (data.get("ip") or "").strip()
+    if not ip:
+        return jsonify({"success": False, "error": "IP obrigatório"}), 400
+    current = os.environ.get("LOCKDOWN_WHITELIST", "")
+    all_ips = {i.strip() for i in current.split(",") if i.strip()}
+    if ip not in all_ips:
+        return jsonify({"success": True, "message": f"IP {ip} não está na whitelist"})
+    all_ips.discard(ip)
+    os.environ["LOCKDOWN_WHITELIST"] = ",".join(sorted(all_ips))
+    log_security_event(ip, "whitelist_remove", f"IP removido da whitelist via painel", "info", "")
+    return jsonify({"success": True, "message": f"IP {ip} removido da whitelist"})
+
+
+@admin_bp.route("/api/ban", methods=["POST"])
+@login_required
+def api_ban():
+    data = request.get_json(silent=True) or {}
+    ip = (data.get("ip") or "").strip()
+    if not ip:
+        return jsonify({"success": False, "error": "IP obrigatório"}), 400
+    if not IPBanido.query.filter_by(ip=ip).first():
+        db.session.add(IPBanido(ip=ip))
+        db.session.commit()
+    log_security_event(ip, "manual_ban", f"IP banido manualmente pelo admin", "warning", "")
+    return jsonify({"success": True, "message": f"IP {ip} banido"})
+
+
+@admin_bp.route("/api/unban", methods=["POST"])
+@login_required
+def api_unban():
+    data = request.get_json(silent=True) or {}
+    ip = (data.get("ip") or "").strip()
+    if not ip:
+        return jsonify({"success": False, "error": "IP obrigatório"}), 400
+    item = IPBanido.query.filter_by(ip=ip).first()
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        log_security_event(ip, "manual_unban", f"IP desbanido manualmente pelo admin", "info", "")
+        return jsonify({"success": True, "message": f"IP {ip} desbanido"})
+    return jsonify({"success": True, "message": f"IP {ip} não estava banido"})
 
 
 @admin_bp.route("/api/search")

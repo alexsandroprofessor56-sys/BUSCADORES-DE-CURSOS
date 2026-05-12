@@ -169,6 +169,13 @@ try:
 except Exception:
     app.logger.exception("Falha ao iniciar agendador de backup diario")
 
+try:
+    from services.lockdown import spike_checker_loop
+    threading.Thread(target=spike_checker_loop, args=(app,), daemon=True).start()
+    app.logger.info("Spike checker iniciado")
+except Exception:
+    app.logger.exception("Falha ao iniciar spike checker")
+
 def _link_checker_loop():
     while True:
         time.sleep(3600)

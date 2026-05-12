@@ -24,6 +24,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/main.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 *,*::before,*::after{scrollbar-width:thin;scrollbar-color:#1f2937 transparent}
@@ -207,29 +209,215 @@ body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow:hi
     </div>
 
     <div id="tab-seguranca" class="tab-content hidden tab-enter">
-      <div class="flex items-center justify-between mb-6"><h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 via-orange-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-lock mr-2"></i>Eventos de Seguranca</span></h1><button onclick="carregarSeguranca()" class="btn btn-ghost"><i class="fas fa-sync-alt"></i> Atualizar</button></div>
-      <div class="glass p-4 sm:p-5"><div id="securityLogs" class="text-sm font-mono space-y-1 max-h-96 overflow-y-auto"></div></div>
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3"><span class="bg-gradient-to-r from-red-300 via-orange-300 to-red-500 bg-clip-text text-transparent"><i class="fas fa-lock mr-2"></i>Central de Seguranca</span></h1>
+        <div class="flex items-center gap-2">
+          <span id="lockdownBadge" class="text-xs px-3 py-1 rounded-full font-bold"></span>
+          <button onclick="atualizarPainelSeguranca()" class="btn btn-ghost"><i class="fas fa-sync-alt"></i> Atualizar</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+        <div class="glass stat-card">
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Lockdown</p><div id="lockdownIcon" class="w-9 h-9 rounded-xl bg-gradient-to-br from-green-400/20 to-green-600/10 flex items-center justify-center text-green-400"><i class="fas fa-shield-halved text-sm"></i></div></div>
+          <p id="lockdownMode" class="text-lg sm:text-xl font-black text-white tracking-tight">---</p>
+          <p id="lockdownDetail" class="text-[10px] text-gray-600 mt-1">---</p>
+        </div>
+        <div class="glass stat-card">
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">IPs Agora</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400/20 to-cyan-600/10 flex items-center justify-center text-cyan-400"><i class="fas fa-network-wired text-sm"></i></div></div>
+          <p id="spikeCount" class="text-lg sm:text-xl font-black text-white tracking-tight">0</p>
+          <p id="spikeDetail" class="text-[10px] text-gray-600 mt-1">nos ultimos segundos</p>
+        </div>
+        <div class="glass stat-card">
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Banidos</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400"><i class="fas fa-ban text-sm"></i></div></div>
+          <p class="text-lg sm:text-xl font-black text-white tracking-tight">{{ bans|length }}</p>
+          <p class="text-[10px] text-gray-600 mt-1">IPs bloqueados</p>
+        </div>
+        <div class="glass stat-card">
+          <div class="flex items-center justify-between mb-2"><p class="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest font-semibold">Whitelist</p><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/10 flex items-center justify-center text-emerald-400"><i class="fas fa-user-shield text-sm"></i></div></div>
+          <p id="whitelistCount" class="text-lg sm:text-xl font-black text-white tracking-tight">0</p>
+          <p class="text-[10px] text-gray-600 mt-1">IPs sempre permitidos</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="lg:col-span-2 glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2"><i class="fas fa-map-marked-alt text-cyan-400"></i> Visitantes ao Vivo</h3>
+          <div id="liveMap" class="h-72 rounded-xl border border-white/5" style="background:#0a0f16;"></div>
+        </div>
+        <div class="glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2"><i class="fas fa-sliders-h text-cyan-400"></i> Controles</h3>
+          <div class="space-y-3">
+            <button onclick="lockdownToggle('on')" class="w-full btn text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-500/10"><i class="fas fa-lock"></i> Ativar Lockdown</button>
+            <button onclick="lockdownToggle('off')" class="w-full btn text-white bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 shadow-lg shadow-emerald-500/10"><i class="fas fa-lock-open"></i> Desativar Lockdown</button>
+            <button onclick="lockdownToggle('disabled')" class="w-full btn text-white bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600"><i class="fas fa-ban"></i> Desabilitar Auto</button>
+            <hr class="border-white/5">
+            <div class="flex gap-2">
+              <input type="text" id="whitelistInput" placeholder="IP para whitelist..." class="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500/50">
+              <button onclick="whitelistAdd()" class="btn text-white bg-cyan-600 hover:bg-cyan-500"><i class="fas fa-plus"></i></button>
+            </div>
+            <div id="whitelistTags" class="flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div class="glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2"><i class="fas fa-chart-line text-orange-400"></i> Pico de Trafego (5min)</h3>
+          <canvas id="spikeChart" height="150"></canvas>
+        </div>
+        <div class="glass p-4 sm:p-5">
+          <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2"><i class="fas fa-list text-cyan-400"></i> Ultimos Visitantes</h3>
+          <div id="visitorTable" class="text-xs space-y-1 max-h-48 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <div class="glass p-4 sm:p-5 mb-4">
+        <h3 class="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2"><i class="fas fa-shield-alt text-red-400"></i> Eventos de Seguranca</h3>
+        <div id="securityLogs" class="text-sm font-mono space-y-1 max-h-64 overflow-y-auto"></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-function showTab(n){
-  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
-  document.getElementById('tab-'+n).classList.remove('hidden');
-  document.querySelectorAll('.sidebar-link').forEach(t=>{t.classList.remove('active');t.style.background='';t.style.color='#9ca3af';const i=t.querySelector('i');if(i&&!i.classList.contains('fa-arrow-left')&&!i.classList.contains('fa-sign-out-alt'))i.style.color=''});
-  const l=document.querySelector(`.sidebar-link[data-tab="${n}"]`);
-  if(l){l.classList.add('active');l.style.background='linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';l.style.color='#06b6d4';const i=l.querySelector('i');if(i)i.style.color='#06b6d4'}
-}
-const tCtx=document.getElementById('trafficChart')?.getContext('2d');let tChart;
+var tChart;
+const tCtx=document.getElementById('trafficChart')?.getContext('2d');
 if(tCtx){const g=tCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(6,182,212,0.25)');g.addColorStop(.5,'rgba(6,182,212,0.08)');g.addColorStop(1,'rgba(6,182,212,0)');tChart=new Chart(tCtx,{type:'line',data:{labels:Array(20).fill(''),datasets:[{label:'Acessos',data:Array(20).fill(0),borderColor:'#06b6d4',backgroundColor:g,fill:!0,tension:.4,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:'#22d3ee',pointHoverBorderColor:'#fff',borderWidth:2}]},options:{responsive:!0,interaction:{intersect:!1,mode:'index'},plugins:{legend:{display:!1},tooltip:{enabled:!0,backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:10}},scales:{x:{display:!1,grid:{display:!1}},y:{beginAtZero:!0,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:10},maxTicksLimit:5}}},animation:{duration:800,easing:'easeOutQuart'}}})}
 const pCtx=document.getElementById('platformChart')?.getContext('2d');
 if(pCtx){const d={};{% for curso in cursos %}const p='{{ curso.plataforma or "Outros" }}';d[p]=(d[p]||0)+1;{% endfor %}const l=Object.keys(d).slice(0,6),v=l.map(k=>d[k]),c=['#06b6d4','#f59e0b','#ef4444','#10b981','#8b5cf6','#ec4899'];new Chart(pCtx,{type:'doughnut',data:{labels:l,datasets:[{data:v,backgroundColor:c.slice(0,l.length),borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const rCtx=document.getElementById('priceChart')?.getContext('2d');
 if(rCtx){let g=0,b=0,p=0;{% for curso in cursos %}{% if curso.preco_tipo == 'gratuito' %}g++{% elif curso.preco_tipo == 'barato' %}b++{% else %}p++{% endif %}{% endfor %};new Chart(rCtx,{type:'doughnut',data:{labels:['Gratis','Barato','Pago'],datasets:[{data:[g,b,p],backgroundColor:['#10b981','#f59e0b','#06b6d4'],borderWidth:0,hoverOffset:8}]},options:{responsive:!0,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#6b7280',font:{size:9},padding:8,usePointStyle:!0,pointStyleWidth:6}}},animation:{animateRotate:!0,duration:1200}}})}
 const socket=io();socket.on('sys_stats',()=>{const e=document.getElementById('liveUsers');if(e)e.textContent=Math.floor(Math.random()*15+3)});socket.on('novo_clique',()=>{if(tChart){const d=tChart.data.datasets[0].data;d.push(1);if(d.length>20)d.shift();tChart.update('none')}});
-function carregarSeguranca(){fetch('/api/security/events').then(r=>r.json()).then(events=>{const c=document.getElementById('securityLogs');if(!c)return;if(events.length===0){c.innerHTML='<div class="text-center py-12"><div class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';return}c.innerHTML=events.map(e=>{const cl=e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400',ic=e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';return`<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${ic} text-[10px] mt-0.5 ${cl}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${cl} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`}).join('')})};carregarSeguranca();
-const to=document.getElementById('terminalOutput'),ti=document.getElementById('terminalInput');to.textContent='Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos.\n\n';ti.addEventListener('keydown',function(e){if(e.key==='Enter'){const c=this.value.trim();this.value='';to.textContent+=`root@radar:~$ ${c}\n`;if(c==='help'){to.textContent+='Comandos: status, analytics, logs, backup create, crawler run, links check, help\n'}else if(c){fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:c})}).then(r=>r.json()).then(d=>{to.textContent+=(d.output||'OK')+'\n';to.scrollTop=to.scrollHeight}).catch(()=>{})}to.scrollTop=to.scrollHeight}});
+function carregarSeguranca(){fetch('/api/security/events').then(r=>r.json()).then(events=>{const c=document.getElementById('securityLogs');if(!c)return;if(events.length===0){c.innerHTML='<div class="text-center py-8"><div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-check-circle text-2xl text-emerald-400"></i></div><p class="text-gray-500 font-medium">Nenhum evento</p><p class="text-gray-600 text-xs mt-1">Tudo tranquilo</p></div>';return}c.innerHTML=events.map(e=>{const cl=e.severity==='critical'?'text-red-400':e.severity==='warning'?'text-yellow-400':'text-gray-400',ic=e.severity==='critical'?'fa-skull':e.severity==='warning'?'fa-exclamation-triangle':'fa-info-circle';return`<div class="flex items-start gap-3 py-2 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors rounded px-1"><i class="fas ${ic} text-[10px] mt-0.5 ${cl}"></i><div class="flex-1 min-w-0"><div class="flex items-center gap-2 text-xs"><span class="uppercase text-[10px] font-bold px-1.5 py-0.5 rounded ${cl} bg-current/5">${e.severity}</span><span class="text-gray-500">${e.event_type}</span></div><div class="text-xs mt-0.5 break-all">${e.ip} — ${e.message}</div><div class="text-[10px] text-gray-600 mt-0.5">${e.created_at}</div></div></div>`}).join('')})};carregarSeguranca();
+
+var liveMap = null;
+function initMap() {
+  const el = document.getElementById('liveMap');
+  if(!el || !L) return;
+  if(liveMap) { liveMap.invalidateSize(); return; }
+  liveMap = L.map('liveMap', { center: [-14.235, -51.925], zoom: 4, zoomControl: false, attributionControl: false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(liveMap);
+}
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(initMap, 500);
+});
+function showTab(n){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.add('hidden'));
+  document.getElementById('tab-'+n).classList.remove('hidden');
+  document.querySelectorAll('.sidebar-link').forEach(t=>{t.classList.remove('active');t.style.background='';t.style.color='#9ca3af';const i=t.querySelector('i');if(i&&!i.classList.contains('fa-arrow-left')&&!i.classList.contains('fa-sign-out-alt'))i.style.color=''});
+  const l=document.querySelector(`.sidebar-link[data-tab="${n}"]`);
+  if(l){l.classList.add('active');l.style.background='linear-gradient(135deg, rgba(6,182,212,0.12), transparent 80%)';l.style.color='#06b6d4';const i=l.querySelector('i');if(i)i.style.color='#06b6d4'}
+  if(n==='seguranca'){setTimeout(()=>{initMap();atualizarPainelSeguranca()},100)}
+}
+
+function atualizarPainelSeguranca(){
+  fetch('/api/lockdown/status').then(r=>r.json()).then(s=>{
+    const modeEl=document.getElementById('lockdownMode');
+    const badge=document.getElementById('lockdownBadge');
+    const icon=document.getElementById('lockdownIcon');
+    const detail=document.getElementById('lockdownDetail');
+    const count=document.getElementById('spikeCount');
+    const spikeDetail=document.getElementById('spikeDetail');
+    const wlCount=document.getElementById('whitelistCount');
+    if(s.active){
+      modeEl.textContent=s.auto?'AUTO-BLOQUEADO':'LOCKDOWN MANUAL';
+      badge.textContent=s.auto?'🚨 AUTO':'🔒 MANUAL';
+      badge.className='text-xs px-3 py-1 rounded-full font-bold bg-red-500/20 text-red-400 border border-red-500/30';
+      icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-red-400/20 to-red-600/10 flex items-center justify-center text-red-400';
+      icon.innerHTML='<i class="fas fa-shield-halved text-sm"></i>';
+    } else if(s.disabled){
+      modeEl.textContent='DESABILITADO';
+      badge.textContent='⛔ OFF';
+      badge.className='text-xs px-3 py-1 rounded-full font-bold bg-gray-500/20 text-gray-400 border border-gray-500/30';
+      icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-gray-400/20 to-gray-600/10 flex items-center justify-center text-gray-400';
+      icon.innerHTML='<i class="fas fa-ban text-sm"></i>';
+    } else {
+      modeEl.textContent='NORMAL';
+      badge.textContent='✅ LIVRE';
+      badge.className='text-xs px-3 py-1 rounded-full font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      icon.className='w-9 h-9 rounded-xl bg-gradient-to-br from-green-400/20 to-green-600/10 flex items-center justify-center text-green-400';
+      icon.innerHTML='<i class="fas fa-shield-halved text-sm"></i>';
+    }
+    count.textContent=s.ips_now;
+    spikeDetail.textContent=`nos ultimos ${s.window}s (limite: ${s.threshold})`;
+    detail.textContent=s.active?s.auto?'Ativado automaticamente por pico de trafego':'Ativado manualmente pelo admin':'Sistema operando normalmente';
+    wlCount.textContent=s.whitelist.length;
+    renderWhitelistTags(s.whitelist);
+  });
+  carregarSeguranca();
+  fetch('/api/traffic/summary?minutes=5').then(r=>r.json()).then(d=>{
+    renderVisitorTable(d.ips);
+    renderSpikeChart(d.ips);
+    updateMapMarkers(d.ips);
+  });
+}
+
+function renderWhitelistTags(list){
+  const el=document.getElementById('whitelistTags');
+  if(!el)return;
+  if(!list||list.length===0){el.innerHTML='<span class="text-gray-600 text-xs">Nenhum IP na whitelist</span>';return}
+  el.innerHTML=list.map(ip=>`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono">${ip} <i onclick="whitelistRemove('${ip}')" class="fas fa-times cursor-pointer hover:text-red-400"></i></span>`).join('');
+}
+
+function whitelistAdd(){
+  const inp=document.getElementById('whitelistInput');
+  const ip=inp.value.trim();
+  if(!ip)return;
+  fetch('/api/whitelist/add',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({ip})}).then(r=>r.json()).then(d=>{inp.value='';atualizarPainelSeguranca();Swal.fire({icon:'success',title:'Adicionado!',text:d.message,timer:1500,showConfirm:false,background:'#0a0f16',color:'#e5e7eb'})});
+}
+
+function whitelistRemove(ip){
+  fetch('/api/whitelist/remove',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({ip})}).then(r=>r.json()).then(()=>atualizarPainelSeguranca());
+}
+
+function lockdownToggle(state){
+  const labels={on:'Ativar lockdown?',off:'Desativar lockdown?',disabled:'Desabilitar protecao auto?'};
+  Swal.fire({title:labels[state],icon:'warning',showCancelButton:true,confirmButtonColor:'#ef4444',cancelButtonColor:'#6b7280',confirmButtonText:'Sim',cancelButtonText:'Cancelar',background:'#0a0f16',color:'#e5e7eb'}).then(r=>{if(r.isConfirmed){fetch('/api/lockdown/toggle',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({state})}).then(r=>r.json()).then(d=>{atualizarPainelSeguranca();Swal.fire({icon:d.success?'success':'error',title:d.success?'OK!':'Erro',text:d.status?d.status.mode:'',timer:1500,showConfirm:false,background:'#0a0f16',color:'#e5e7eb'})})}});
+}
+
+function renderVisitorTable(ips){
+  const el=document.getElementById('visitorTable');
+  if(!el)return;
+  if(!ips||ips.length===0){el.innerHTML='<div class="text-gray-600 text-xs text-center py-4">Nenhum visitante nos ultimos 5 min</div>';return}
+  el.innerHTML=ips.slice(0,20).map(ip=>{
+    const threat=ip.is_tor?'🔴 TOR':ip.is_vpn?'🟡 VPN':ip.is_bot?'🤖 Bot':'🟢 Normal';
+    return `<div class="flex items-center justify-between py-1.5 px-2 rounded hover:bg-white/[0.02] border-b border-white/5 last:border-0"><span class="font-mono text-[10px] text-gray-300">${ip.ip}</span><span class="text-[10px] text-gray-500">${ip.country||'?'} ${ip.city||''}</span><span class="text-[10px]">${threat}</span><span class="text-[10px] text-gray-600">${ip.count}x</span></div>`;
+  }).join('');
+}
+
+var spikeChartInstance = null;
+function renderSpikeChart(ips){
+  const ctx=document.getElementById('spikeChart');
+  if(!ctx)return;
+  if(spikeChartInstance)spikeChartInstance.destroy();
+  const labels=ips.map((_,i)=>'T'+(i+1));
+  const data=ips.map(ip=>ip.count);
+  const bg=data.map(v=>v>5?'rgba(239,68,68,0.6)':'rgba(6,182,212,0.6)');
+  spikeChartInstance = new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Reqs',data,backgroundColor:bg,borderRadius:4,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0a0f16',titleColor:'#e5e7eb',bodyColor:'#06b6d4',borderColor:'rgba(6,182,212,.2)',borderWidth:1,cornerRadius:8,padding:8,callbacks:{label:function(c){const ip=ips[c.dataIndex];return`${ip.ip} - ${ip.country} ${ip.city} - ${ip.count} reqs`}}}},scales:{x:{display:false,grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#4b5563',font:{size:9},maxTicksLimit:4}}},animation:{duration:300}}});
+}
+
+var mapMarkers = [];
+function updateMapMarkers(ips){
+  if(!liveMap)return;
+  mapMarkers.forEach(m=>liveMap.removeLayer(m));
+  mapMarkers=[];
+  const valid=ips.filter(ip=>ip.lat&&ip.lng);
+  if(valid.length===0)return;
+  valid.forEach(ip=>{
+    const color=ip.is_tor?'#ef4444':ip.is_vpn?'#f59e0b':ip.is_bot?'#8b5cf6':'#22d3ee';
+    const size=Math.min(12,4+ip.count*2);
+    const marker=L.circleMarker([ip.lat,ip.lng],{radius:size,color:color,fillColor:color,fillOpacity:0.5,weight:1,opacity:0.8});
+    marker.bindPopup(`<b>${ip.ip}</b><br>${ip.country} ${ip.city}<br>${ip.provider||''}<br>${ip.is_tor?'🔴 TOR':ip.is_vpn?'🟡 VPN':ip.is_bot?'🤖 Bot':'🟢 Normal'}<br>${ip.count} requisicoes`);
+    marker.addTo(liveMap);
+    mapMarkers.push(marker);
+  });
+  if(valid.length>0)liveMap.fitBounds(mapMarkers.map(m=>m.getLatLng()),{padding:[30,30],maxZoom:10});
+}
+
+setInterval(atualizarPainelSeguranca, 8000);
+setTimeout(atualizarPainelSeguranca, 1000);
+const to=document.getElementById('terminalOutput'),ti=document.getElementById('terminalInput');to.textContent='Bem-vindo ao Terminal Radar Elite\nDigite "help" para comandos.\n\n';ti.addEventListener('keydown',function(e){if(e.key==='Enter'){const c=this.value.trim();this.value='';to.textContent+=`root@radar:~$ ${c}\n`;if(c==='help'){to.textContent+='Comandos: status, analytics, logs, backup, crawler, links, lockdown, whitelist\n'}else if(c){fetch('/admin/terminal',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':'{{ csrf_token() }}'},body:JSON.stringify({comando:c})}).then(r=>r.json()).then(d=>{to.textContent+=(d.output||'OK')+'\n';to.scrollTop=to.scrollHeight}).catch(()=>{})}to.scrollTop=to.scrollHeight}});
 </script>
 </body>
 </html>
