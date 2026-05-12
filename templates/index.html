@@ -45,15 +45,10 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
 @keyframes ringSpin{to{transform:rotate(360deg)}}
 
 /* hero */
-.hero{position:relative;z-index:2;text-align:center;padding:48px 24px 32px;max-width:700px;margin:0 auto}
-.hero-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:32px;color:#fff;margin:0 auto 16px;position:relative;animation:avatarIn .6s cubic-bezier(.22,1,.36,1)}
-.hero-avatar::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid transparent;background:linear-gradient(135deg,#a855f7,#ec4899,#06b6d4,#22c55e) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:ringSpin 3s linear infinite}
-.hero-avatar::after{content:'';position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.15),transparent 70%);animation:pulseRing 3s ease-in-out infinite;z-index:-1}
-@keyframes pulseRing{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.3}}
-@keyframes avatarIn{0%{transform:scale(0) rotate(-20deg)}100%{transform:scale(1) rotate(0)}}
-.hero h1{font-size:28px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:4px;animation:fadeUp .5s ease .1s both}
-.hero h1 span{background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero-sub{color:rgba(255,255,255,.2);font-size:14px;animation:fadeUp .5s ease .15s both}
+.hero{position:relative;z-index:2;text-align:center;padding:36px 24px 28px;max-width:700px;margin:0 auto}
+.hero-user-name{font-size:15px;font-weight:600;color:rgba(255,255,255,.3);margin-bottom:2px;animation:fadeUp .5s ease .1s both;letter-spacing:.02em}
+.hero-brand{font-size:42px;font-weight:900;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.03em;margin-bottom:6px;animation:fadeUp .5s ease .15s both;line-height:1.1}
+.hero-sub{color:rgba(255,255,255,.2);font-size:14px;animation:fadeUp .5s ease .2s both}
 
 .hero-stats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px 0 24px;animation:fadeUp .5s ease .2s both}
 .stat-pill{display:flex;align-items:center;gap:6px;padding:6px 16px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.01em}
@@ -190,15 +185,11 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
 
 <main style="position:relative;z-index:2">
   <section class="hero">
-    <div class="hero-avatar" id="avatarBtn" style="cursor:pointer" title="Clique para trocar foto" onclick="document.getElementById('avatarInput').click()">
-      {% if session.site_user_avatar %}
-      <img src="{{ session.site_user_avatar }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">
-      {% else %}
-      {{ (session.site_user_name or session.site_user_email.split('@')[0])[:1].upper() }}
-      {% endif %}
-    </div>
+    {% if session.site_user_email %}
+    <div class="hero-user-name">{{ session.site_user_name or session.site_user_email.split('@')[0] }}</div>
+    {% endif %}
+    <div class="hero-brand">RADARELITE</div>
     <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
-    <h1>Olá, <span>{{ session.site_user_name or session.site_user_email.split('@')[0] }}</span></h1>
     <p class="hero-sub">Encontre o curso ideal para sua carreira</p>
     <div class="hero-stats">
       <span class="stat-pill stat-pill-1">
