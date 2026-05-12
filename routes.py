@@ -35,6 +35,7 @@ from services.security import (
     otpauth_uri,
     recent_login_failures,
     record_access,
+    send_telegram_notification,
     verify_totp,
 )
 
@@ -571,6 +572,12 @@ def public_login():
             user = User(username=email, password=pw_hash)
             db.session.add(user)
             db.session.commit()
+            send_telegram_notification(
+                f"\U0001f4a5 NOVO CADASTRO\n"
+                f"Email: {email}\n"
+                f"IP: {get_client_ip(request)}\n"
+                f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            )
         session.permanent = True
         session["site_user_email"] = user.username
         session["site_user_name"] = user.username.split("@")[0]

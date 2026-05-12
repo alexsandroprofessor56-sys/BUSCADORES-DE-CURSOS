@@ -54,8 +54,23 @@ def log_security_event(ip, event_type, message, severity="info", user_agent=""):
     )
     db.session.add(event)
     db.session.commit()
-    send_alert(f"[{severity.upper()}] {event_type}: {message} | IP {ip}")
+    if severity in ("critical", "warning"):
+        send_alert(f"[{severity.upper()}] {event_type}: {message} | IP {ip}")
     return event
+
+
+def send_telegram_notification(message):
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    if token and chat_id:
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage",
+                json={"chat_id": chat_id, "text": message},
+                timeout=4,
+            )
+        except Exception:
+            current_app.logger.exception("Falha ao enviar notificação Telegram")
 
 
 def auto_ban(ip, reason, user_agent=""):
