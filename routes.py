@@ -235,7 +235,7 @@ COMMANDS = {
     "status": ["status", "CPU, RAM, disco, cursos, bans, usuario logado"],
     "geoip": ["geoip <ip>", "Localiza um IP: pais, cidade, provedor, mapa"],
     "logs": ["logs", "Ultimas 80 linhas do log de acesso"],
-    "backup": ["backup create|telegram|daily", "Criar, enviar ou ver status do backup"],
+    "backup": ["backup create|telegram|daily", "Criar backup local, enviar pro Telegram, ver config"],
     "cleanup": ["cleanup old", "Remove registros antigos (acessos, eventos)"],
     "users": ["users online", "Mostra usuarios online"],
     "ban": ["ban ip <endereco>", "Bane um IP manualmente"],
@@ -257,28 +257,27 @@ def _terminal_help(cmd=None):
             return f"{entry[0]}\n  {entry[1]}"
         return f"Comando desconhecido: {cmd}. Digite 'help' para a lista completa."
 
+    seen = set()
     groups = [
         ("SISTEMA", ["status", "logs", "users online"]),
-        ("BACKUP", ["backup create", "backup telegram", "backup daily", "cleanup old"]),
-        ("SEGURANCA", ["ban ip", "unban ip", "lockdown on", "lockdown off", "lockdown status", "lockdown disabled", "whitelist add", "whitelist remove", "whitelist list", "security events"]),
+        ("BACKUP", ["backup", "cleanup"]),
+        ("SEGURANCA", ["ban", "unban", "lockdown", "whitelist", "security"]),
         ("REDE", ["geoip"]),
-        ("CRAWLER", ["crawler start", "crawler stop", "crawler run", "links check"]),
+        ("CRAWLER", ["crawler", "links"]),
         ("ANALYTICS", ["analytics"]),
-        ("MANUTENCAO", ["maintenance on", "maintenance off"]),
-        ("AJUDA", ["help", "help <comando>"]),
+        ("MANUTENCAO", ["maintenance"]),
+        ("AJUDA", ["help"]),
     ]
 
     lines = ["\u2554\u2550\u2550\u2550 TERMINAL RADAR ELITE \u2550\u2550\u2550\u2557", ""]
     for group_name, cmds in groups:
         lines.append(f"  \u2502 {group_name}")
         lines.append(f"  \u2502" + "\u2500" * 30)
-        for c in cmds:
-            entry = COMMANDS.get(c.split()[0])
-            if entry:
-                key = c.split()[0]
-                display = entry[0]
-                desc = entry[1]
-                lines.append(f"  \u2502   {display:<35} {desc}")
+        for cmd_key in cmds:
+            entry = COMMANDS.get(cmd_key)
+            if entry and cmd_key not in seen:
+                seen.add(cmd_key)
+                lines.append(f"  \u2502   {entry[0]:<35} {entry[1]}")
         lines.append("")
     lines.append("\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")
     return "\n".join(lines)
