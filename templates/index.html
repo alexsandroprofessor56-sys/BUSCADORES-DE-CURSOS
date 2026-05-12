@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RadarElite — Buscador de Cursos</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:hidden;min-height:100vh}
@@ -186,8 +187,13 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
 
 <main style="position:relative;z-index:2">
   <section class="hero">
-    <div class="hero-user-role">Desenvolvedor</div>
-    <div class="hero-user-name">Alexsandro Souza Melo</div>
+    {% if session.site_user_email %}
+    <div class="hero-user-role"><i class="fas fa-circle text-emerald-500" style="font-size:6px;vertical-align:middle;margin-right:6px"></i>Conectado</div>
+    <div class="hero-user-name"><i class="fas fa-hand-wave" style="margin-right:8px"></i>Olá, {{ session.site_user_name or session.site_user_email.split('@')[0] }}</div>
+    {% else %}
+    <div class="hero-user-role"><i class="fas fa-circle text-gray-500" style="font-size:6px;vertical-align:middle;margin-right:6px"></i>Visitante</div>
+    <div class="hero-user-name"><a href="/login" style="color:rgba(255,255,255,.5);text-decoration:none"><i class="fas fa-sign-in-alt" style="margin-right:8px"></i>Faça login para salvar cursos</a></div>
+    {% endif %}
     <div class="hero-brand">RADARELITE</div>
     <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
     <p class="hero-sub">Encontre o curso ideal para sua carreira</p>
