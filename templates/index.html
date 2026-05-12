@@ -177,19 +177,19 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
   </nav>
   <a href="javascript:void(0)" onclick="document.getElementById('avatarInput').click()" class="avatar-top" title="Trocar foto">
     <div class="avatar-top-ring"></div>
-    {% if session.site_user_avatar %}
-    <img src="{{ session.site_user_avatar }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">
+    {% if session.get('site_user_avatar') %}
+    <img src="{{ session.get('site_user_avatar') }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">
     {% else %}
-    {{ (session.site_user_name or session.site_user_email.split('@')[0])[:1].upper() }}
+    {{ (session.get('site_user_name') or (session.get('site_user_email') or '?').split('@')[0])[:1].upper() }}
     {% endif %}
   </a>
 </header>
 
 <main style="position:relative;z-index:2">
   <section class="hero">
-    {% if session.site_user_email %}
+    {% if session.get('site_user_email') %}
     <div class="hero-user-role"><i class="fas fa-circle text-emerald-500" style="font-size:6px;vertical-align:middle;margin-right:6px"></i>Conectado</div>
-    <div class="hero-user-name"><i class="fas fa-hand-wave" style="margin-right:8px"></i>Olá, {{ session.site_user_name or session.site_user_email.split('@')[0] }}</div>
+    <div class="hero-user-name"><i class="fas fa-hand-wave" style="margin-right:8px"></i>Olá, {{ session.get('site_user_name') or session.get('site_user_email','?').split('@')[0] }}</div>
     {% else %}
     <div class="hero-user-role"><i class="fas fa-circle text-gray-500" style="font-size:6px;vertical-align:middle;margin-right:6px"></i>Visitante</div>
     <div class="hero-user-name"><a href="/login" style="color:rgba(255,255,255,.5);text-decoration:none"><i class="fas fa-sign-in-alt" style="margin-right:8px"></i>Faça login para salvar cursos</a></div>
