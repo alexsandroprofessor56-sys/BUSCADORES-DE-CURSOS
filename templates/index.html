@@ -10,194 +10,290 @@
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     *,*::before,*::after{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent}
-    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px}
-    body{font-family:'Inter',sans-serif;background:#03060a;color:#e5e7eb;overflow-x:hidden}
-    .noise{position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
-    .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:64px 64px}
-    .vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 40%,#03060a 100%)}
-    .orb{position:fixed;border-radius:50%;filter:blur(150px);pointer-events:none;z-index:0;will-change:transform}
-    .orb-1{width:700px;height:700px;background:radial-gradient(circle,#06b6d4,transparent);top:-300px;right:-200px;opacity:.05;animation:drift1 25s ease-in-out infinite}
-    .orb-2{width:500px;height:500px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-200px;left:-150px;opacity:.04;animation:drift2 30s ease-in-out infinite}
-    .orb-3{width:400px;height:400px;background:radial-gradient(circle,#f59e0b,transparent);top:40%;left:30%;opacity:.03;animation:drift3 20s ease-in-out infinite}
-    .orb-4{width:300px;height:300px;background:radial-gradient(circle,#ec4899,transparent);top:60%;right:10%;opacity:.02;animation:drift1 22s ease-in-out infinite reverse}
-    @keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(80px,-60px)}50%{transform:translate(-30px,40px)}75%{transform:translate(50px,20px)}}
-    @keyframes drift2{0%,100%{transform:translate(0,0)}33%{transform:translate(-60px,-40px)}66%{transform:translate(40px,60px)}}
-    @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-20px) scale(1.1)}}
-    .card{background:linear-gradient(165deg,rgba(13,18,27,.9),rgba(8,12,18,.95));border:1px solid rgba(255,255,255,.04);border-radius:18px;transition:all .6s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
-    .card::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(135deg,transparent 10%,rgba(6,182,212,.15),transparent 90%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .8s}
-    .card:hover{transform:translateY(-8px);border-color:rgba(6,182,212,.12);box-shadow:0 40px 100px rgba(0,0,0,.5),0 0 60px rgba(6,182,212,.03)}
-    .card:hover::before{opacity:1}
-    .card::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(6,182,212,.03),transparent 60%);pointer-events:none;opacity:0;transition:opacity .6s}
-    .card:hover::after{opacity:1}
-    .glass{background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.005));backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.04);border-radius:18px;transition:all .4s cubic-bezier(.22,1,.36,1)}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-    @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-    .hero-enter{animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
-    .hero-d1{animation-delay:.1s}.hero-d2{animation-delay:.2s}.hero-d3{animation-delay:.3s}.hero-d4{animation-delay:.4s}
-    .card-enter{opacity:0;transform:translateY(40px);animation:fadeUp .6s cubic-bezier(.22,1,.36,1) forwards}
-    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.02em;transition:all .3s}
-    .badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.2);color:#34d399}
-    .badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.03));border:1px solid rgba(245,158,11,.2);color:#fbbf24}
-    .badge-nivel{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);color:#9ca3af}
-    .gradient-text{background:linear-gradient(135deg,#22d3ee 0%,#06b6d4 30%,#0891b2 60%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 100%;animation:shimmerText 8s ease-in-out infinite}
-    @keyframes shimmerText{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:13px;transition:all .3s cubic-bezier(.22,1,.36,1);cursor:pointer;border:none;position:relative;overflow:hidden}
-    .btn:active{transform:scale(.93)}
-    .btn-primary{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#fff;box-shadow:0 4px 24px rgba(6,182,212,.2)}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(6,182,212,.3)}
-    .btn-ghost{background:rgba(255,255,255,.03);color:#9ca3af;border:1px solid rgba(255,255,255,.06)}
-    .btn-ghost:hover{background:rgba(255,255,255,.06);color:#e5e7eb;border-color:rgba(255,255,255,.1)}
-    .btn-shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);background-size:200% 100%;animation:btnShimmer 3s ease-in-out infinite;pointer-events:none}
-    @keyframes btnShimmer{0%,100%{background-position:-200% 0}50%{background-position:200% 0}}
-    .input-elite{width:100%;padding:16px 20px;border-radius:16px;background:rgba(10,15,22,.8);border:1px solid rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none;transition:all .4s;backdrop-filter:blur(10px)}
-    .input-elite:focus{border-color:rgba(6,182,212,.25);box-shadow:0 0 0 4px rgba(6,182,212,.06),0 0 40px rgba(6,182,212,.02)}
-    .input-elite::placeholder{color:rgba(255,255,255,.15)}
-    .filter-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 18px;border-radius:999px;font-size:12px;font-weight:600;transition:all .3s cubic-bezier(.22,1,.36,1);border:none;cursor:pointer;letter-spacing:.01em}
-    .filter-chip:active{transform:scale(.92)}
-    .filter-chip-active{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.2)}
-    .filter-chip-inactive{background:rgba(255,255,255,.02);color:#6b7280;border:1px solid rgba(255,255,255,.04)}
-    .filter-chip-inactive:hover{background:rgba(255,255,255,.04);color:#d1d5db;border-color:rgba(255,255,255,.08)}
-    .toast{position:fixed;bottom:30px;right:30px;z-index:99999;background:rgba(13,18,27,.95);backdrop-filter:blur(20px);border:1px solid rgba(34,211,238,.12);border-radius:16px;padding:16px 24px;color:#e5e7eb;font-size:14px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(6,182,212,.03);animation:toastIn .5s cubic-bezier(.22,1,.36,1);display:flex;align-items:center;gap:12px}
-    @keyframes toastIn{from{opacity:0;transform:translateY(30px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .pagination-btn{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;transition:all .3s;border:none;cursor:pointer}
-    .pagination-btn:active{transform:scale(.88)}
-    .nav-blur{background:rgba(3,6,10,.85);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,.03)}
-    .hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse, rgba(6,182,212,.04) 0%,transparent 70%);pointer-events:none;z-index:-1}
-    .stat-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:999px;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.08);color:rgba(6,182,212,.8);font-size:13px;font-weight:600;backdrop-filter:blur(10px)}
-    .stat-dot{width:7px;height:7px;border-radius:50%;background:#06b6d4;animation:pulse 2s ease-in-out infinite}
-    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-    .search-wrapper{position:relative;border-radius:18px;background:linear-gradient(135deg,rgba(6,182,212,.04),rgba(139,92,246,.02));padding:2px}
-    .search-wrapper:focus-within{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(139,92,246,.04))}
-    .search-inner{background:#0a0f16;border-radius:16px;padding:4px}
-    .footer-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent)}
-    .mouse-track{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:18px}
-    @media(max-width:640px){.input-elite{font-size:15px;padding:14px 16px}.btn{padding:8px 18px;font-size:12px}.card{border-radius:14px}}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px}
+    body{font-family:'Inter',sans-serif;background:radial-gradient(ellipse at 20% 20%,#071018,#03060a 70%);color:#e5e7eb;overflow-x:hidden;min-height:100vh}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:9998;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
+    .orb{position:fixed;border-radius:50%;filter:blur(180px);pointer-events:none;z-index:0;will-change:transform}
+    .orb-1{width:900px;height:900px;background:radial-gradient(circle,#06b6d4,transparent 70%);top:-400px;right:-200px;opacity:.04;animation:drift 35s ease-in-out infinite}
+    .orb-2{width:600px;height:600px;background:radial-gradient(circle,#8b5cf6,transparent 70%);bottom:-300px;left:-200px;opacity:.03;animation:drift 40s ease-in-out infinite reverse}
+    @keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(80px,-60px)}66%{transform:translate(-40px,40px)}}
+    .greeting-section{
+      position:relative;
+      padding:48px 0 32px;
+      text-align:center
+    }
+    .greeting-section::after{
+      content:'';
+      position:absolute;
+      bottom:0;left:50%;transform:translateX(-50%);
+      width:60%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(6,182,212,.08),transparent)
+    }
+    .avatar-circle{
+      width:72px;height:72px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#06b6d4,#0891b2);
+      display:flex;align-items:center;justify-content:center;
+      font-size:28px;font-weight:800;color:#fff;
+      margin:0 auto 20px;
+      box-shadow:0 0 0 3px rgba(6,182,212,.08),0 20px 60px rgba(6,182,212,.12);
+      animation:avatarPop .6s cubic-bezier(.22,1,.36,1)
+    }
+    @keyframes avatarPop{0%{transform:scale(0) rotate(-10deg)}60%{transform:scale(1.1) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+    .greeting-name{
+      font-size:28px;font-weight:800;color:#fff;
+      letter-spacing:-.03em;
+      animation:fadeUp .6s ease .15s both
+    }
+    .greeting-name span{
+      background:linear-gradient(135deg,#22d3ee,#06b6d4);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent
+    }
+    .greeting-sub{
+      color:rgba(255,255,255,.25);
+      font-size:14px;font-weight:400;
+      margin-top:6px;
+      animation:fadeUp .6s ease .25s both
+    }
+    .search-shell{
+      max-width:640px;margin:32px auto 0;
+      padding:0 20px;
+      animation:fadeUp .6s ease .35s both
+    }
+    .search-wrap{
+      position:relative;
+      background:rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:100px;
+      padding:4px;
+      transition:all .4s;
+      display:flex;align-items:center
+    }
+    .search-wrap:focus-within{
+      border-color:rgba(6,182,212,.15);
+      box-shadow:0 0 0 4px rgba(6,182,212,.03),0 0 60px rgba(6,182,212,.02)
+    }
+    .search-wrap input{
+      flex:1;min-width:0;
+      padding:14px 8px 14px 22px;
+      background:transparent;border:none;outline:none;
+      color:#fff;font-size:15px;font-family:'Inter',sans-serif
+    }
+    .search-wrap input::placeholder{color:rgba(255,255,255,.12)}
+    .search-wrap button{
+      flex-shrink:0;
+      padding:10px 24px;margin:3px;
+      border-radius:100px;
+      background:linear-gradient(135deg,#06b6d4,#0891b2);
+      color:#fff;font-weight:700;font-size:13px;
+      border:none;cursor:pointer;
+      transition:all .3s;
+      display:flex;align-items:center;gap:8px
+    }
+    .search-wrap button:hover{transform:scale(1.02);box-shadow:0 8px 30px rgba(6,182,212,.2)}
+    .search-wrap button:active{transform:scale(.97)}
+    .filters{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:0 20px;animation:fadeUp .6s ease .45s both}
+    .chip{
+      padding:6px 18px;border-radius:100px;font-size:12px;font-weight:600;
+      transition:all .3s;cursor:pointer;border:none;
+      letter-spacing:.01em
+    }
+    .chip-active{
+      background:linear-gradient(135deg,#06b6d4,#0891b2);
+      color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.15)
+    }
+    .chip:not(.chip-active){
+      background:rgba(255,255,255,.02);color:#6b7280;border:1px solid rgba(255,255,255,.04)
+    }
+    .chip:not(.chip-active):hover{background:rgba(255,255,255,.04);color:#d1d5db}
+    .chip:active{transform:scale(.92)}
+    .stats{
+      display:flex;align-items:center;gap:8px;
+      padding:4px 16px 4px 12px;
+      border-radius:100px;
+      background:rgba(6,182,212,.04);
+      border:1px solid rgba(6,182,212,.06);
+      color:rgba(6,182,212,.7);
+      font-size:12px;font-weight:600;
+      animation:fadeUp .6s ease both
+    }
+    .stats-dot{width:6px;height:6px;border-radius:50%;background:#06b6d4;animation:pulseDot 2s ease-in-out infinite}
+    @keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.3}}
+    .grid-courses{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+      gap:16px;
+      padding:0 20px;
+      max-width:1200px;margin:0 auto
+    }
+    @media(max-width:640px){.grid-courses{grid-template-columns:1fr;gap:12px;padding:0 16px}}
+    .course-card{
+      background:rgba(255,255,255,.01);
+      border:1px solid rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:20px;
+      transition:all .5s cubic-bezier(.22,1,.36,1);
+      position:relative;overflow:hidden
+    }
+    .course-card::before{
+      content:'';
+      position:absolute;inset:0;border-radius:16px;
+      background:linear-gradient(135deg,transparent,rgba(6,182,212,.02));
+      opacity:0;transition:opacity .5s
+    }
+    .course-card:hover{
+      transform:translateY(-4px);
+      border-color:rgba(6,182,212,.08);
+      box-shadow:0 30px 80px rgba(0,0,0,.3),0 0 40px rgba(6,182,212,.02)
+    }
+    .course-card:hover::before{opacity:1}
+    .course-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+    .course-logo{
+      width:42px;height:42px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;font-weight:800;text-transform:uppercase;
+      flex-shrink:0;
+      box-shadow:0 8px 24px rgba(0,0,0,.2)
+    }
+    .course-title{font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:3px}
+    .course-platform{font-size:13px;color:rgba(255,255,255,.25);display:flex;align-items:center;gap:6px}
+    .course-desc{font-size:13px;color:rgba(255,255,255,.2);line-height:1.5;margin-bottom:14px}
+    .course-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+    .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 12px;border-radius:100px;font-size:10px;font-weight:700}
+    .tag-free{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.15);color:#34d399}
+    .tag-cheap{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.15);color:#fbbf24}
+    .tag-level{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.3)}
+    .tag-cert{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.3)}
+    .course-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.02)}
+    .course-clicks{font-size:12px;color:rgba(255,255,255,.15);display:flex;align-items:center;gap:6px}
+    .course-actions{display:flex;gap:8px}
+    .btn-icon{
+      width:34px;height:34px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.03);
+      color:rgba(255,255,255,.2);cursor:pointer;
+      transition:all .3s;font-size:12px
+    }
+    .btn-icon:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.5)}
+    .btn-access{
+      padding:8px 20px;border-radius:10px;
+      background:linear-gradient(135deg,#06b6d4,#0891b2);
+      color:#fff;font-weight:700;font-size:11px;
+      border:none;cursor:pointer;transition:all .3s;
+      display:flex;align-items:center;gap:6px;
+      letter-spacing:.04em
+    }
+    .btn-access:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(6,182,212,.15)}
+    .btn-access:active{transform:scale(.95)}
+    .pagination-wrap{display:flex;justify-content:center;gap:6px;padding:48px 20px}
+    .page-btn{
+      width:36px;height:36px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:600;transition:all .3s;
+      border:none;cursor:pointer
+    }
+    .page-btn:active{transform:scale(.88)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .fade-up{animation:fadeUp .7s cubic-bezier(.22,1,.36,1) both}
+    .empty-state{text-align:center;padding:60px 20px}
+    .empty-icon{
+      width:80px;height:80px;border-radius:24px;
+      background:rgba(6,182,212,.02);border:1px solid rgba(6,182,212,.06);
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 20px
+    }
+    .empty-icon i{font-size:32px;color:rgba(6,182,212,.2)}
+    .nav-blur{background:rgba(3,6,10,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.02)}
+    @media(max-width:480px){
+      .greeting-section{padding:32px 16px 24px}
+      .avatar-circle{width:56px;height:56px;font-size:22px}
+      .greeting-name{font-size:22px}
+      .search-wrap input{padding:12px 8px 12px 18px;font-size:14px}
+      .search-wrap button{padding:8px 18px;font-size:12px}
+      .course-card{padding:16px}
+    }
   </style>
 </head>
 <body>
   <div class="noise"></div>
-  <div class="bg-grid"></div>
-  <div class="vignette"></div>
-  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div>
 
   <nav class="nav-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
-      <a href="/" class="flex items-center gap-3 group">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all duration-500">RE</div>
-        <span class="text-lg font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 py-3.5 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-xs shadow-lg shadow-cyan-500/15">RE</div>
+        <span class="text-base font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
       </a>
       <div class="flex items-center gap-3 text-sm">
         {% if session.site_user_email %}
-          <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-circle text-[6px] text-cyan-400"></i> {{ session.site_user_name or session.site_user_email.split('@')[0] }}</span>
-          <a href="/sair" class="btn btn-ghost"><i class="fas fa-sign-out-alt text-xs"></i> Sair</a>
-        {% else %}
-          <a href="/login" class="btn btn-ghost"><i class="fas fa-right-to-bracket text-xs"></i> Entrar</a>
+          <a href="/sair" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[.02] border border-white/[.04] text-gray-500 hover:text-gray-300 transition-all text-xs">
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </a>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-14 sm:pb-16 text-center">
-    <div class="hero-glow"></div>
-    <div class="hero-enter hero-d1">
-      <span class="stat-badge">
-        <span class="stat-dot"></span>
-        {{ pagination.total }} cursos gratuitos
-      </span>
+  {% if session.site_user_email %}
+  <section class="greeting-section">
+    <div class="avatar-circle">{{ (session.site_user_name or session.site_user_email.split('@')[0])[:1].upper() }}</div>
+    <h1 class="greeting-name">Olá, <span>{{ session.site_user_name or session.site_user_email.split('@')[0] }}</span></h1>
+    <p class="greeting-sub">Encontre o curso perfeito para você</p>
+  </section>
+  {% endif %}
+
+  <div class="search-shell">
+    <div class="stats fade-up" style="margin:0 auto 20px;display:inline-flex">
+      <span class="stats-dot"></span>
+      {{ pagination.total }} cursos gratuitos
     </div>
-    <h1 class="hero-enter hero-d2 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-4 sm:mb-6 tracking-tight leading-[.92] mt-8">
-      Busque o<br>
-      <span class="gradient-text">Curso Ideal</span>
-    </h1>
-    <p class="hero-enter hero-d3 text-gray-500 text-base sm:text-lg md:text-xl mb-10 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
-      Cursos gratuitos com certificado das melhores plataformas
-    </p>
-    <form method="GET" action="/" class="hero-enter hero-d4 max-w-xl sm:max-w-2xl mx-auto">
-      <div class="search-wrapper">
-        <div class="search-inner flex items-center">
-          <input type="text" name="q" value="{{ q }}"
-            class="input-elite border-0 bg-transparent flex-1 min-w-0"
-            placeholder="Pesquise por curso, plataforma ou área...">
-          <button type="submit" class="btn btn-primary mr-1.5 px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base flex-shrink-0">
-            <i class="fas fa-search"></i> Buscar
-          </button>
-        </div>
+    <form method="GET" action="/" class="fade-up" style="animation-delay:.1s">
+      <div class="search-wrap">
+        <input type="text" name="q" value="{{ q }}" placeholder="Pesquise por curso, plataforma ou área...">
+        <button type="submit"><i class="fas fa-search" style="font-size:12px"></i> Buscar</button>
       </div>
     </form>
-  </section>
+  </div>
 
-  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
-    <div class="flex flex-wrap gap-2 items-center justify-center">
-      <a href="/" class="filter-chip {% if not area and not preco and not nivel %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-th-large text-xs"></i> Todos
-      </a>
-      {% for a in areas[:12] %}
-      <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="filter-chip {% if area == a %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
-        {{ a }}
-      </a>
-      {% endfor %}
-    </div>
-    <div class="flex flex-wrap gap-2 items-center justify-center mt-3">
-      <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="filter-chip {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-check-circle"></i> Gratuito
-      </a>
-      <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="filter-chip {% if preco == 'barato' %}badge-barato font-bold{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-tag"></i> Barato
-      </a>
-      <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'iniciante' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-seedling"></i> Iniciante
-      </a>
-      <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'intermediario' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-chart-line"></i> Intermediário
-      </a>
-      <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'avancado' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
-        <i class="fas fa-rocket"></i> Avançado
-      </a>
-    </div>
-  </section>
+  <div class="filters" style="margin-top:24px;margin-bottom:32px">
+    <a href="/" class="chip {% if not area and not preco and not nivel %}chip-active{% endif %}">Todos</a>
+    {% for a in areas[:10] %}
+    <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}" class="chip {% if area == a %}chip-active{% endif %}">{{ a }}</a>
+    {% endfor %}
+  </div>
 
-  <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-20 sm:pb-28">
+  <div class="filters" style="margin-top:-16px;margin-bottom:36px">
+    <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}" class="chip {% if preco == 'gratuito' %}chip-active{% endif %}"><i class="fas fa-check-circle" style="font-size:10px"></i> Gratuito</a>
+    <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}" class="chip {% if preco == 'barato' %}chip-active{% endif %}"><i class="fas fa-tag" style="font-size:10px"></i> Barato</a>
+    <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}" class="chip {% if nivel == 'iniciante' %}chip-active{% endif %}"><i class="fas fa-seedling" style="font-size:10px"></i> Iniciante</a>
+    <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}" class="chip {% if nivel == 'intermediario' %}chip-active{% endif %}"><i class="fas fa-chart-line" style="font-size:10px"></i> Intermediário</a>
+    <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}" class="chip {% if nivel == 'avancado' %}chip-active{% endif %}"><i class="fas fa-rocket" style="font-size:10px"></i> Avançado</a>
+  </div>
+
+  <section style="padding-bottom:60px">
     {% if cursos %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+    <div class="grid-courses">
       {% for curso in cursos %}
-      <div class="card p-5 sm:p-6 card-enter" style="animation-delay: {{ '%.2f'|format(loop.index0 * 0.04) }}s">
-        <div class="mouse-track" onmousemove="this.style.setProperty('--mx',(e.offsetX/this.offsetWidth*100)+'%');this.style.setProperty('--my',(e.offsetY/this.offsetHeight*100)+'%')"></div>
-        <div class="flex items-start gap-3 sm:gap-4 mb-4">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold uppercase flex-shrink-0 shadow-lg shadow-black/30 transition-transform duration-500" style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
-            {{ curso.logo_initials or 'RE' }}
-          </div>
+      <div class="course-card fade-up" style="animation-delay:{{ '%.2f'|format(loop.index0 * 0.04) }}s">
+        <div class="course-header">
+          <div class="course-logo" style="background:{{ curso.brand_surface }};color:{{ curso.brand_color }}">{{ curso.logo_initials or 'RE' }}</div>
           <div class="min-w-0 flex-1">
-            <h3 class="font-semibold text-white text-sm sm:text-base leading-tight mb-1 line-clamp-2">{{ curso.nome }}</h3>
-            <p class="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5"><i class="fas fa-building text-[10px] sm:text-xs opacity-60"></i> {{ curso.plataforma or 'Plataforma' }}</p>
+            <div class="course-title truncate">{{ curso.nome }}</div>
+            <div class="course-platform"><i class="fas fa-building" style="font-size:10px;opacity:.5"></i> {{ curso.plataforma or 'Plataforma' }}</div>
           </div>
         </div>
-        <p class="text-xs sm:text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">{{ (curso.descricao or '')[:120] }}{% if curso.descricao and curso.descricao|length > 120 %}...{% endif %}</p>
-        <div class="flex flex-wrap gap-1.5 mb-4">
-          {% if curso.preco_tipo == 'gratuito' %}
-            <span class="badge badge-gratis"><i class="fas fa-check-circle"></i> Grátis</span>
-          {% elif curso.preco_tipo == 'barato' %}
-            <span class="badge badge-barato"><i class="fas fa-tag"></i> Barato</span>
-          {% endif %}
-          {% if curso.nivel %}
-          <span class="badge badge-nivel"><i class="fas fa-signal"></i> {{ curso.nivel }}</span>
-          {% endif %}
-          <span class="badge badge-nivel"><i class="fas fa-certificate"></i> Certificado</span>
+        <div class="course-desc line-clamp-2">{{ (curso.descricao or '')[:120] }}{% if curso.descricao and curso.descricao|length > 120 %}...{% endif %}</div>
+        <div class="course-tags">
+          {% if curso.preco_tipo == 'gratuito' %}<span class="tag tag-free"><i class="fas fa-check-circle"></i> Grátis</span>{% endif %}
+          {% if curso.preco_tipo == 'barato' %}<span class="tag tag-cheap"><i class="fas fa-tag"></i> Barato</span>{% endif %}
+          {% if curso.nivel %}<span class="tag tag-level"><i class="fas fa-signal"></i> {{ curso.nivel }}</span>{% endif %}
+          <span class="tag tag-cert"><i class="fas fa-certificate"></i> Certificado</span>
         </div>
-        <div class="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/5">
-          <span class="text-[11px] sm:text-xs text-gray-600 flex items-center gap-1.5"><i class="fas fa-eye text-[10px]"></i> {{ curso.cliques or 0 }} acessos</span>
-          <div class="flex gap-2">
-            <button onclick="favoritar({{ curso.id }})" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/5 hover:bg-yellow-500/15 text-gray-500 hover:text-yellow-400 transition-all flex items-center justify-center" title="Favoritar"><i class="fas fa-star text-xs"></i></button>
-            <a href="/c/{{ curso.id }}" target="_blank" class="btn btn-primary py-2 px-4 sm:px-5 text-[11px] sm:text-xs">
-              <i class="fas fa-external-link-alt"></i> ACESSAR
-              <div class="btn-shimmer"></div>
-            </a>
+        <div class="course-footer">
+          <span class="course-clicks"><i class="fas fa-eye"></i> {{ curso.cliques or 0 }}</span>
+          <div class="course-actions">
+            <button onclick="favoritar({{ curso.id }})" class="btn-icon" title="Favoritar"><i class="fas fa-star"></i></button>
+            <a href="/c/{{ curso.id }}" target="_blank" class="btn-access"><i class="fas fa-external-link-alt"></i> ACESSAR</a>
           </div>
         </div>
       </div>
@@ -205,67 +301,53 @@
     </div>
 
     {% if pagination.pages > 1 %}
-    <div class="flex justify-center mt-12 sm:mt-16 gap-2">
+    <div class="pagination-wrap">
       {% if pagination.has_prev %}
-      <a href="?page={{ pagination.prev_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="pagination-btn bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30"><i class="fas fa-chevron-left text-xs"></i></a>
+      <a href="?page={{ pagination.prev_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}" class="page-btn" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:#6b7280"><i class="fas fa-chevron-left" style="font-size:10px"></i></a>
       {% endif %}
-      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+      {% for p in pagination.iter_pages(left_edge=1,right_edge=1,left_current=2,right_current=2) %}
         {% if p %}
-        <a href="?page={{ p }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-          class="pagination-btn {% if p == pagination.page %}bg-gradient-to-br from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30{% endif %}">
-          {{ p }}
-        </a>
+        <a href="?page={{ p }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}" class="page-btn" style="{% if p == pagination.page %}background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 4px 16px rgba(6,182,212,.15){% else %}background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:#6b7280{% endif %}">{{ p }}</a>
         {% else %}
-        <span class="flex items-center justify-center text-gray-600 text-sm w-8">...</span>
+        <span style="display:flex;align-items:center;color:rgba(255,255,255,.1);font-size:13px;width:36px;justify-content:center">...</span>
         {% endif %}
       {% endfor %}
       {% if pagination.has_next %}
-      <a href="?page={{ pagination.next_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="pagination-btn bg-[#0a0f16] border border-white/5 text-gray-400 hover:text-white hover:border-cyan-500/30"><i class="fas fa-chevron-right text-xs"></i></a>
+      <a href="?page={{ pagination.next_num }}&q={{ q }}&area={{ area }}&preco={{ preco }}&nivel={{ nivel }}" class="page-btn" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);color:#6b7280"><i class="fas fa-chevron-right" style="font-size:10px"></i></a>
       {% endif %}
     </div>
     {% endif %}
 
     {% else %}
-    <div class="text-center py-20 sm:py-28">
-      <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-cyan-500/8 to-cyan-600/3 flex items-center justify-center mx-auto mb-6 sm:mb-8 border border-cyan-500/8">
-        <i class="fas fa-search text-3xl sm:text-4xl text-cyan-400/50"></i>
-      </div>
-      <p class="text-gray-400 text-xl sm:text-2xl font-semibold mb-2">Nenhum curso encontrado</p>
-      <p class="text-gray-600 text-sm sm:text-base mb-8">Tente ajustar os filtros ou buscar por outro termo</p>
-      <a href="/" class="btn btn-primary px-8 py-3 text-sm">
-        <i class="fas fa-times"></i> Limpar filtros
-      </a>
+    <div class="empty-state fade-up">
+      <div class="empty-icon"><i class="fas fa-search"></i></div>
+      <p style="color:rgba(255,255,255,.4);font-size:18px;font-weight:600;margin-bottom:6px">Nenhum curso encontrado</p>
+      <p style="color:rgba(255,255,255,.15);font-size:14px;margin-bottom:24px">Tente ajustar os filtros ou buscar por outro termo</p>
+      <a href="/" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:100px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-weight:700;font-size:13px;text-decoration:none;transition:all .3s"><i class="fas fa-times"></i> Limpar filtros</a>
     </div>
     {% endif %}
   </section>
 
-  <footer class="relative z-10 border-t border-white/5 py-10 sm:py-12 text-center">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-      <div class="flex items-center justify-center gap-2.5 mb-3">
-        <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-300 to-cyan-600 flex items-center justify-center text-black font-bold text-[8px]">RE</div>
-        <span class="text-sm font-bold text-white">Radar<span class="text-cyan-400">Elite</span></span>
-      </div>
-      <p class="text-gray-600 text-xs sm:text-sm">© 2026 — Buscador de Cursos Gratuitos com Certificado</p>
-    </div>
+  <footer style="border-top:1px solid rgba(255,255,255,.02);padding:24px 20px;text-align:center">
+    <p style="color:rgba(255,255,255,.08);font-size:12px">© 2026 RadarElite — Buscador de Cursos Gratuitos com Certificado</p>
   </footer>
 
   <div id="toastContainer"></div>
 
   <script>
-    function toast(msg, icon='fa-check-circle') {
-      const c = document.getElementById('toastContainer');
-      const t = document.createElement('div'); t.className = 'toast';
-      t.innerHTML = `<i class="fas ${icon}" style="color:#22d3ee"></i> ${msg}`;
+    function toast(msg,icon='fa-check-circle'){
+      const c=document.getElementById('toastContainer');
+      const t=document.createElement('div');
+      t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:99999;background:rgba(13,18,27,.95);backdrop-filter:blur(20px);border:1px solid rgba(34,211,238,.1);border-radius:14px;padding:14px 22px;color:#e5e7eb;font-size:13px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;animation:toastIn .5s cubic-bezier(.22,1,.36,1)';
+      t.innerHTML='<i class="fas '+icon+'" style="color:#22d3ee;font-size:14px"></i> '+msg;
       c.appendChild(t);
-      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px) scale(.95)'; t.style.transition = 'all .4s'; setTimeout(() => t.remove(), 400); }, 3000);
+      setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(20px)';t.style.transition='all .4s';setTimeout(()=>t.remove(),400)},3000)
     }
-    function favoritar(id) {
-      fetch('/api/favoritar/' + id, { method: 'POST' })
-        .then(r => r.json())
-        .then(d => { if(d.success) toast('Curso favoritado!'); else toast(d.error || 'Erro'); })
-        .catch(() => toast('Faça login para favoritar', 'fa-exclamation-triangle'));
+    function favoritar(id){
+      fetch('/api/favoritar/'+id,{method:'POST'})
+        .then(r=>r.json())
+        .then(d=>{if(d.success)toast('Curso favoritado!');else toast(d.error||'Erro')})
+        .catch(()=>toast('Faça login para favoritar','fa-exclamation-triangle'))
     }
   </script>
 </body>

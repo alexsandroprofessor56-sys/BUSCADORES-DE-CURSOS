@@ -503,7 +503,7 @@ def public_google_authorize():
             user_info = oauth.google.parse_id_token(token)
         if user_info:
             session["site_user_email"] = user_info.get("email")
-            session["site_user_name"] = user_info.get("name")
+            session["site_user_name"] = (user_info.get("email") or "").split("@")[0]
             session["site_user_picture"] = user_info.get("picture")
             session["site_user_logged_at"] = datetime.now().isoformat(timespec="seconds")
             log_security_event(
