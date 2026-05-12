@@ -115,8 +115,6 @@ _ensure_schema()
 with app.app_context():
     from core.models import User, Curso
     from services.crawler import seed_cursos, check_broken_links
-    from services.search import sync_all
-
     admin_username = os.environ.get("ADMIN_USERNAME", "admin")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
     admin_user = User.query.filter_by(username=admin_username).first()
@@ -133,13 +131,6 @@ with app.app_context():
         app.logger.info(f"Apenas {total} cursos. Populando ate 2000...")
         criados = seed_cursos(2000 - total)
         app.logger.info(f"Seed concluido! +{criados} cursos. Total: {Curso.query.count()}")
-
-    if os.environ.get("TYPESENSE_HOST") and os.environ.get("TYPESENSE_API_KEY"):
-        try:
-            sinc = sync_all()
-            app.logger.info(f"Typesense sincronizado: {sinc} cursos")
-        except Exception:
-            app.logger.exception("Falha ao sincronizar Typesense")
 
 
 @app.context_processor
