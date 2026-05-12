@@ -373,6 +373,8 @@ def _run_internal_command(command):
 
 @admin_bp.route("/")
 def index():
+    if not _site_logged_in():
+        return redirect(url_for("admin_bp.public_login"))
     page = request.args.get("page", 1, type=int)
     per_page = 24
     q = request.args.get("q", "").strip()
@@ -450,16 +452,35 @@ def logout():
     return redirect(url_for("admin_bp.admin_login"))
 
 
-@admin_bp.route("/login")
+@admin_bp.route("/login", methods=["GET", "POST"])
 def public_login():
     if _site_logged_in():
         return redirect(url_for("admin_bp.index"))
     client_id, client_secret = _google_config()
-    return render_template(
-        "site_login.html",
-        google_ready=bool(client_id and client_secret),
-        google_login_url=url_for("admin_bp.public_google_login"),
-    )
+    google_ready = bool(client_id and client_secret)
+    google_url = url_for("admin_bp.public_google_login")
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        if not email or not password:
+            return render_template("site_login.html", erro="Preencha email e senha.", google_ready=google_ready, google_login_url=google_url)
+        from app import bcrypt
+        user = User.query.filter_by(username=email).first()
+        if user:
+            if not bcrypt.check_password_hash(user.password, password):
+                return render_template("site_login.html", erro="Senha incorreta.", google_ready=google_ready, google_login_url=google_url)
+        else:
+            pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+            user = User(username=email, password=pw_hash)
+            db.session.add(user)
+            db.session.commit()
+        session["site_user_email"] = user.username
+        session["site_user_name"] = user.username.split("@")[0]
+        session["site_user_logged_at"] = datetime.now().isoformat(timespec="seconds")
+        return redirect(url_for("admin_bp.index"))
+
+    return render_template("site_login.html", google_ready=google_ready, google_login_url=google_url)
 
 
 @admin_bp.route("/login/google")

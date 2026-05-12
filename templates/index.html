@@ -9,132 +9,155 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    *,*::before,*::after{scrollbar-width:thin;scrollbar-color:#1f2937 transparent}
-    ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1f2937;border-radius:3px}
-    body{font-family:'Inter',sans-serif;background:#05080c;color:#e5e7eb;overflow-x:hidden}
-    .noise{position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
-    .glass{background:rgba(255,255,255,0.02);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border:1px solid rgba(255,255,255,0.06);border-radius:16px;transition:all .4s cubic-bezier(.22,1,.36,1)}
-    .glass:hover{border-color:rgba(34,211,238,0.15)}
-    .card{background:linear-gradient(165deg,#0d1219,#0a0f16);border:1px solid rgba(255,255,255,0.06);border-radius:16px;transition:all .5s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
-    .card::before{content:'';position:absolute;inset:0;border-radius:16px;padding:1px;background:linear-gradient(135deg,transparent 20%,rgba(6,182,212,0.2),transparent 80%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .6s}
+    *,*::before,*::after{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px}
+    body{font-family:'Inter',sans-serif;background:#03060a;color:#e5e7eb;overflow-x:hidden}
+    .noise{position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px 256px}
+    .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:64px 64px}
+    .vignette{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 40%,#03060a 100%)}
+    .orb{position:fixed;border-radius:50%;filter:blur(150px);pointer-events:none;z-index:0;will-change:transform}
+    .orb-1{width:700px;height:700px;background:radial-gradient(circle,#06b6d4,transparent);top:-300px;right:-200px;opacity:.05;animation:drift1 25s ease-in-out infinite}
+    .orb-2{width:500px;height:500px;background:radial-gradient(circle,#8b5cf6,transparent);bottom:-200px;left:-150px;opacity:.04;animation:drift2 30s ease-in-out infinite}
+    .orb-3{width:400px;height:400px;background:radial-gradient(circle,#f59e0b,transparent);top:40%;left:30%;opacity:.03;animation:drift3 20s ease-in-out infinite}
+    .orb-4{width:300px;height:300px;background:radial-gradient(circle,#ec4899,transparent);top:60%;right:10%;opacity:.02;animation:drift1 22s ease-in-out infinite reverse}
+    @keyframes drift1{0%,100%{transform:translate(0,0)}25%{transform:translate(80px,-60px)}50%{transform:translate(-30px,40px)}75%{transform:translate(50px,20px)}}
+    @keyframes drift2{0%,100%{transform:translate(0,0)}33%{transform:translate(-60px,-40px)}66%{transform:translate(40px,60px)}}
+    @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-40px,-20px) scale(1.1)}}
+    .card{background:linear-gradient(165deg,rgba(13,18,27,.9),rgba(8,12,18,.95));border:1px solid rgba(255,255,255,.04);border-radius:18px;transition:all .6s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(135deg,transparent 10%,rgba(6,182,212,.15),transparent 90%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .8s}
+    .card:hover{transform:translateY(-8px);border-color:rgba(6,182,212,.12);box-shadow:0 40px 100px rgba(0,0,0,.5),0 0 60px rgba(6,182,212,.03)}
     .card:hover::before{opacity:1}
-    .card:hover{transform:translateY(-6px);border-color:rgba(34,211,238,0.2);box-shadow:0 30px 80px rgba(0,0,0,.5),0 0 40px rgba(6,182,212,0.03)}
-    @keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}33%{transform:translateY(-20px) scale(1.02)}66%{transform:translateY(10px) scale(.98)}}
-    .orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;will-change:transform}
-    .orb-1{width:600px;height:600px;background:#06b6d4;top:-250px;right:-150px;opacity:.06;animation:orbFloat 20s ease-in-out infinite}
-    .orb-2{width:500px;height:500px;background:#f59e0b;bottom:-200px;left:-150px;opacity:.04;animation:orbFloat 25s ease-in-out infinite reverse}
-    .orb-3{width:400px;height:400px;background:#8b5cf6;top:30%;left:60%;opacity:.03;animation:orbFloat 30s ease-in-out infinite 5s}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-    @keyframes pulseGlow{0%,100%{box-shadow:0 0 30px rgba(6,182,212,0.08)}50%{box-shadow:0 0 60px rgba(6,182,212,0.2)}}
-    .hero-pulse{animation:pulseGlow 4s ease-in-out infinite}
-    .reveal{animation:fadeUp .7s cubic-bezier(.22,1,.36,1) forwards;opacity:0}
-    .reveal-delay-1{animation-delay:.1s}.reveal-delay-2{animation-delay:.2s}.reveal-delay-3{animation-delay:.3s}
-    .card-enter{opacity:0;transform:translateY(30px);animation:fadeUp .6s cubic-bezier(.22,1,.36,1) forwards}
-    .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.02em;transition:all .3s}
-    .badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.25);color:#34d399}
-    .badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(245,158,11,.05));border:1px solid rgba(245,158,11,.25);color:#fbbf24}
-    .badge-pago{background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(6,182,212,.05));border:1px solid rgba(6,182,212,.25);color:#22d3ee}
-    .badge-nivel{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:#9ca3af}
-    .gradient-text{background:linear-gradient(135deg,#22d3ee,#06b6d4,#0891b2,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:300% 100%;animation:shimmerText 6s linear infinite}
-    @keyframes shimmerText{0%{background-position:0% 50%}100%{background-position:300% 50%}}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:13px;transition:all .3s cubic-bezier(.22,1,.36,1);cursor:pointer;border:none}
-    .btn:active{transform:scale(.94)}
-    .btn-primary{background:linear-gradient(135deg,#22d3ee,#06b6d4);color:#000;box-shadow:0 4px 20px rgba(6,182,212,.25)}
-    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(6,182,212,.35)}
-    .btn-ghost{background:rgba(255,255,255,0.04);color:#9ca3af;border:1px solid rgba(255,255,255,0.06)}
-    .btn-ghost:hover{background:rgba(255,255,255,0.08);color:#e5e7eb}
-    .input-elite{width:100%;padding:16px 20px;border-radius:14px;background:#0a0f16;border:1px solid rgba(255,255,255,0.08);color:#fff;font-size:16px;outline:none;transition:all .3s}
-    .input-elite:focus{border-color:rgba(6,182,212,.4);box-shadow:0 0 0 3px rgba(6,182,212,.1)}
-    .input-elite::placeholder{color:#4b5563}
-    .filter-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:500;transition:all .3s cubic-bezier(.22,1,.36,1);border:none;cursor:pointer}
-    .filter-chip:active{transform:scale(.93)}
-    .toast{position:fixed;bottom:30px;right:30px;z-index:9999;background:#0d1219;border:1px solid rgba(34,211,238,.2);border-radius:14px;padding:14px 22px;color:#e5e7eb;font-size:14px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:slideUp .4s cubic-bezier(.22,1,.36,1);display:flex;align-items:center;gap:10px}
-    @keyframes slideUp{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .card::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(6,182,212,.03),transparent 60%);pointer-events:none;opacity:0;transition:opacity .6s}
+    .card:hover::after{opacity:1}
+    .glass{background:linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.005));backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);border:1px solid rgba(255,255,255,.04);border-radius:18px;transition:all .4s cubic-bezier(.22,1,.36,1)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+    .hero-enter{animation:fadeUp .8s cubic-bezier(.22,1,.36,1) both}
+    .hero-d1{animation-delay:.1s}.hero-d2{animation-delay:.2s}.hero-d3{animation-delay:.3s}.hero-d4{animation-delay:.4s}
+    .card-enter{opacity:0;transform:translateY(40px);animation:fadeUp .6s cubic-bezier(.22,1,.36,1) forwards}
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.02em;transition:all .3s}
+    .badge-gratis{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.03));border:1px solid rgba(16,185,129,.2);color:#34d399}
+    .badge-barato{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(245,158,11,.03));border:1px solid rgba(245,158,11,.2);color:#fbbf24}
+    .badge-nivel{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);color:#9ca3af}
+    .gradient-text{background:linear-gradient(135deg,#22d3ee 0%,#06b6d4 30%,#0891b2 60%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 100%;animation:shimmerText 8s ease-in-out infinite}
+    @keyframes shimmerText{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:12px;font-weight:700;font-size:13px;transition:all .3s cubic-bezier(.22,1,.36,1);cursor:pointer;border:none;position:relative;overflow:hidden}
+    .btn:active{transform:scale(.93)}
+    .btn-primary{background:linear-gradient(135deg,#22d3ee,#0891b2);color:#fff;box-shadow:0 4px 24px rgba(6,182,212,.2)}
+    .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px rgba(6,182,212,.3)}
+    .btn-ghost{background:rgba(255,255,255,.03);color:#9ca3af;border:1px solid rgba(255,255,255,.06)}
+    .btn-ghost:hover{background:rgba(255,255,255,.06);color:#e5e7eb;border-color:rgba(255,255,255,.1)}
+    .btn-shimmer{position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);background-size:200% 100%;animation:btnShimmer 3s ease-in-out infinite;pointer-events:none}
+    @keyframes btnShimmer{0%,100%{background-position:-200% 0}50%{background-position:200% 0}}
+    .input-elite{width:100%;padding:16px 20px;border-radius:16px;background:rgba(10,15,22,.8);border:1px solid rgba(255,255,255,.06);color:#fff;font-size:16px;outline:none;transition:all .4s;backdrop-filter:blur(10px)}
+    .input-elite:focus{border-color:rgba(6,182,212,.25);box-shadow:0 0 0 4px rgba(6,182,212,.06),0 0 40px rgba(6,182,212,.02)}
+    .input-elite::placeholder{color:rgba(255,255,255,.15)}
+    .filter-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 18px;border-radius:999px;font-size:12px;font-weight:600;transition:all .3s cubic-bezier(.22,1,.36,1);border:none;cursor:pointer;letter-spacing:.01em}
+    .filter-chip:active{transform:scale(.92)}
+    .filter-chip-active{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;box-shadow:0 4px 20px rgba(6,182,212,.2)}
+    .filter-chip-inactive{background:rgba(255,255,255,.02);color:#6b7280;border:1px solid rgba(255,255,255,.04)}
+    .filter-chip-inactive:hover{background:rgba(255,255,255,.04);color:#d1d5db;border-color:rgba(255,255,255,.08)}
+    .toast{position:fixed;bottom:30px;right:30px;z-index:99999;background:rgba(13,18,27,.95);backdrop-filter:blur(20px);border:1px solid rgba(34,211,238,.12);border-radius:16px;padding:16px 24px;color:#e5e7eb;font-size:14px;font-weight:500;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(6,182,212,.03);animation:toastIn .5s cubic-bezier(.22,1,.36,1);display:flex;align-items:center;gap:12px}
+    @keyframes toastIn{from{opacity:0;transform:translateY(30px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
     .pagination-btn{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;transition:all .3s;border:none;cursor:pointer}
-    .pagination-btn:active{transform:scale(.9)}
-    .nav-blur{background:rgba(5,8,12,.8);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
-    @media(max-width:640px){.input-elite{font-size:15px;padding:14px 16px}.btn{padding:8px 18px;font-size:12px}}
+    .pagination-btn:active{transform:scale(.88)}
+    .nav-blur{background:rgba(3,6,10,.85);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,.03)}
+    .hero-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:800px;height:400px;background:radial-gradient(ellipse, rgba(6,182,212,.04) 0%,transparent 70%);pointer-events:none;z-index:-1}
+    .stat-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:999px;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.08);color:rgba(6,182,212,.8);font-size:13px;font-weight:600;backdrop-filter:blur(10px)}
+    .stat-dot{width:7px;height:7px;border-radius:50%;background:#06b6d4;animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    .search-wrapper{position:relative;border-radius:18px;background:linear-gradient(135deg,rgba(6,182,212,.04),rgba(139,92,246,.02));padding:2px}
+    .search-wrapper:focus-within{background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(139,92,246,.04))}
+    .search-inner{background:#0a0f16;border-radius:16px;padding:4px}
+    .footer-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent)}
+    .mouse-track{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:18px}
+    @media(max-width:640px){.input-elite{font-size:15px;padding:14px 16px}.btn{padding:8px 18px;font-size:12px}.card{border-radius:14px}}
   </style>
 </head>
 <body>
   <div class="noise"></div>
-  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+  <div class="bg-grid"></div>
+  <div class="vignette"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div>
 
-  <nav class="nav-blur border-b border-white/5 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+  <nav class="nav-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
       <a href="/" class="flex items-center gap-3 group">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all duration-500">RE</div>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-300 via-cyan-400 to-cyan-600 flex items-center justify-center text-black font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all duration-500">RE</div>
         <span class="text-lg font-bold tracking-tight text-white">Radar<span class="text-cyan-400">Elite</span></span>
       </a>
       <div class="flex items-center gap-3 text-sm">
         {% if session.site_user_email %}
-          <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-user text-xs text-cyan-400"></i> {{ session.site_user_name or session.site_user_email }}</span>
+          <span class="text-gray-500 flex items-center gap-2"><i class="fas fa-circle text-[6px] text-cyan-400"></i> {{ session.site_user_name or session.site_user_email.split('@')[0] }}</span>
           <a href="/sair" class="btn btn-ghost"><i class="fas fa-sign-out-alt text-xs"></i> Sair</a>
         {% else %}
-          <a href="/login" class="btn btn-ghost"><i class="fab fa-google"></i> Entrar</a>
+          <a href="/login" class="btn btn-ghost"><i class="fas fa-right-to-bracket text-xs"></i> Entrar</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
   <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-28 pb-14 sm:pb-16 text-center">
-    <div class="reveal">
-      <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/15 text-cyan-400 text-xs sm:text-sm font-semibold mb-8">
-        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        {{ pagination.total }} cursos gratuitos encontrados
+    <div class="hero-glow"></div>
+    <div class="hero-enter hero-d1">
+      <span class="stat-badge">
+        <span class="stat-dot"></span>
+        {{ pagination.total }} cursos gratuitos
       </span>
     </div>
-    <h1 class="reveal reveal-delay-1 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-4 sm:mb-6 tracking-tight leading-[.95]">
+    <h1 class="hero-enter hero-d2 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white mb-4 sm:mb-6 tracking-tight leading-[.92] mt-8">
       Busque o<br>
       <span class="gradient-text">Curso Ideal</span>
     </h1>
-    <p class="reveal reveal-delay-2 text-gray-500 text-base sm:text-lg md:text-xl mb-10 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
+    <p class="hero-enter hero-d3 text-gray-500 text-base sm:text-lg md:text-xl mb-10 sm:mb-12 max-w-2xl mx-auto leading-relaxed">
       Cursos gratuitos com certificado das melhores plataformas
     </p>
-    <form method="GET" action="/" class="reveal reveal-delay-3 max-w-xl sm:max-w-2xl mx-auto">
-      <div class="relative hero-pulse rounded-2xl sm:rounded-3xl">
-        <input type="text" name="q" value="{{ q }}"
-          class="input-elite pr-36 sm:pr-44"
-          placeholder="Pesquise por curso, plataforma ou área...">
-        <button type="submit" class="btn btn-primary absolute right-2 top-1/2 -translate-y-1/2 px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base">
-          <i class="fas fa-search"></i> Buscar
-        </button>
+    <form method="GET" action="/" class="hero-enter hero-d4 max-w-xl sm:max-w-2xl mx-auto">
+      <div class="search-wrapper">
+        <div class="search-inner flex items-center">
+          <input type="text" name="q" value="{{ q }}"
+            class="input-elite border-0 bg-transparent flex-1 min-w-0"
+            placeholder="Pesquise por curso, plataforma ou área...">
+          <button type="submit" class="btn btn-primary mr-1.5 px-5 sm:px-7 py-2.5 sm:py-3 text-sm sm:text-base flex-shrink-0">
+            <i class="fas fa-search"></i> Buscar
+          </button>
+        </div>
       </div>
     </form>
   </section>
 
   <section class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pb-6 sm:pb-8">
     <div class="flex flex-wrap gap-2 items-center justify-center">
-      <a href="/" class="filter-chip {% if not area and not preco and not nivel %}bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+      <a href="/" class="filter-chip {% if not area and not preco and not nivel %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-th-large text-xs"></i> Todos
       </a>
-      {% for a in areas[:10] %}
+      {% for a in areas[:12] %}
       <a href="/?area={{ a }}&q={{ q }}&preco={{ preco }}&nivel={{ nivel }}"
-        class="filter-chip {% if area == a %}bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if area == a %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
         {{ a }}
       </a>
       {% endfor %}
     </div>
     <div class="flex flex-wrap gap-2 items-center justify-center mt-3">
       <a href="/?preco=gratuito&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="filter-chip {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if preco == 'gratuito' %}badge-gratis font-bold{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-check-circle"></i> Gratuito
       </a>
       <a href="/?preco=barato&q={{ q }}&area={{ area }}&nivel={{ nivel }}"
-        class="filter-chip {% if preco == 'barato' %}badge-barato font-bold{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if preco == 'barato' %}badge-barato font-bold{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-tag"></i> Barato
       </a>
       <a href="/?nivel=iniciante&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'iniciante' %}bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if nivel == 'iniciante' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-seedling"></i> Iniciante
       </a>
       <a href="/?nivel=intermediario&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'intermediario' %}bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if nivel == 'intermediario' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-chart-line"></i> Intermediário
       </a>
       <a href="/?nivel=avancado&q={{ q }}&area={{ area }}&preco={{ preco }}"
-        class="filter-chip {% if nivel == 'avancado' %}bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-bold shadow-lg shadow-cyan-500/20{% else %}bg-[#0a0f16] text-gray-400 hover:text-white border border-white/5{% endif %}">
+        class="filter-chip {% if nivel == 'avancado' %}filter-chip-active{% else %}filter-chip-inactive{% endif %}">
         <i class="fas fa-rocket"></i> Avançado
       </a>
     </div>
@@ -144,9 +167,10 @@
     {% if cursos %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
       {% for curso in cursos %}
-      <div class="card p-5 sm:p-6 card-enter" style="animation-delay: {{ loop.index0 * 0.05 }}s">
+      <div class="card p-5 sm:p-6 card-enter" style="animation-delay: {{ '%.2f'|format(loop.index0 * 0.04) }}s">
+        <div class="mouse-track" onmousemove="this.style.setProperty('--mx',(e.offsetX/this.offsetWidth*100)+'%');this.style.setProperty('--my',(e.offsetY/this.offsetHeight*100)+'%')"></div>
         <div class="flex items-start gap-3 sm:gap-4 mb-4">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold uppercase flex-shrink-0 shadow-lg shadow-black/30" style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
+          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold uppercase flex-shrink-0 shadow-lg shadow-black/30 transition-transform duration-500" style="background: {{ curso.brand_surface }}; color: {{ curso.brand_color }};">
             {{ curso.logo_initials or 'RE' }}
           </div>
           <div class="min-w-0 flex-1">
@@ -154,9 +178,7 @@
             <p class="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5"><i class="fas fa-building text-[10px] sm:text-xs opacity-60"></i> {{ curso.plataforma or 'Plataforma' }}</p>
           </div>
         </div>
-
         <p class="text-xs sm:text-sm text-gray-500 mb-4 line-clamp-2 leading-relaxed">{{ (curso.descricao or '')[:120] }}{% if curso.descricao and curso.descricao|length > 120 %}...{% endif %}</p>
-
         <div class="flex flex-wrap gap-1.5 mb-4">
           {% if curso.preco_tipo == 'gratuito' %}
             <span class="badge badge-gratis"><i class="fas fa-check-circle"></i> Grátis</span>
@@ -168,13 +190,13 @@
           {% endif %}
           <span class="badge badge-nivel"><i class="fas fa-certificate"></i> Certificado</span>
         </div>
-
         <div class="flex items-center justify-between pt-3 sm:pt-4 border-t border-white/5">
           <span class="text-[11px] sm:text-xs text-gray-600 flex items-center gap-1.5"><i class="fas fa-eye text-[10px]"></i> {{ curso.cliques or 0 }} acessos</span>
           <div class="flex gap-2">
             <button onclick="favoritar({{ curso.id }})" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/5 hover:bg-yellow-500/15 text-gray-500 hover:text-yellow-400 transition-all flex items-center justify-center" title="Favoritar"><i class="fas fa-star text-xs"></i></button>
             <a href="/c/{{ curso.id }}" target="_blank" class="btn btn-primary py-2 px-4 sm:px-5 text-[11px] sm:text-xs">
               <i class="fas fa-external-link-alt"></i> ACESSAR
+              <div class="btn-shimmer"></div>
             </a>
           </div>
         </div>
@@ -207,8 +229,8 @@
 
     {% else %}
     <div class="text-center py-20 sm:py-28">
-      <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-cyan-500/10 to-cyan-600/5 flex items-center justify-center mx-auto mb-6 sm:mb-8 border border-cyan-500/10">
-        <i class="fas fa-search text-3xl sm:text-4xl text-cyan-400/60"></i>
+      <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-cyan-500/8 to-cyan-600/3 flex items-center justify-center mx-auto mb-6 sm:mb-8 border border-cyan-500/8">
+        <i class="fas fa-search text-3xl sm:text-4xl text-cyan-400/50"></i>
       </div>
       <p class="text-gray-400 text-xl sm:text-2xl font-semibold mb-2">Nenhum curso encontrado</p>
       <p class="text-gray-600 text-sm sm:text-base mb-8">Tente ajustar os filtros ou buscar por outro termo</p>
@@ -235,14 +257,14 @@
     function toast(msg, icon='fa-check-circle') {
       const c = document.getElementById('toastContainer');
       const t = document.createElement('div'); t.className = 'toast';
-      t.innerHTML = `<i class="fas ${icon} text-cyan-400"></i> ${msg}`;
+      t.innerHTML = `<i class="fas ${icon}" style="color:#22d3ee"></i> ${msg}`;
       c.appendChild(t);
-      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; t.style.transition = 'all .3s'; setTimeout(() => t.remove(), 300); }, 2800);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(20px) scale(.95)'; t.style.transition = 'all .4s'; setTimeout(() => t.remove(), 400); }, 3000);
     }
     function favoritar(id) {
       fetch('/api/favoritar/' + id, { method: 'POST' })
         .then(r => r.json())
-        .then(d => { if(d.success) toast('Curso favoritado!', 'fa-star'); else toast(d.error || 'Erro', 'fa-exclamation-circle'); })
+        .then(d => { if(d.success) toast('Curso favoritado!'); else toast(d.error || 'Erro'); })
         .catch(() => toast('Faça login para favoritar', 'fa-exclamation-triangle'));
     }
   </script>
