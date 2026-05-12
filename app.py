@@ -149,16 +149,25 @@ if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
 with app.app_context():
     from core.models import User, Curso
     from services.crawler import seed_cursos, check_broken_links
-    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
+    admin_username = os.environ.get("ADMIN_USERNAME", "alexsandro")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "alexxp2009")
     admin_user = User.query.filter_by(username=admin_username).first()
     if not admin_user:
-        pw_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
-        db.session.add(User(username=admin_username, password=pw_hash))
-        db.session.commit()
-        app.logger.info(f"Admin criado: {admin_username}")
+        old_admin = User.query.filter_by(username="admin").first()
+        if old_admin:
+            old_admin.username = admin_username
+            old_admin.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            db.session.commit()
+            app.logger.info(f"Admin renomeado de 'admin' para '{admin_username}' com nova senha")
+        else:
+            pw_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+            db.session.add(User(username=admin_username, password=pw_hash))
+            db.session.commit()
+            app.logger.info(f"Admin criado: {admin_username}")
     else:
-        app.logger.info(f"Admin encontrado: {admin_username}")
+        admin_user.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+        db.session.commit()
+        app.logger.info(f"Admin encontrado e senha atualizada: {admin_username}")
 
     total = Curso.query.count()
     if total < 2000:

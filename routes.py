@@ -510,7 +510,15 @@ def _run_internal_command(command):
         log_security_event(ip, "whitelist_remove", f"IP removido da whitelist", "info", "")
         return f"IP {ip} removido da whitelist."
 
-    return "Comando não permitido. Digite 'help' para ver os comandos disponíveis."
+    try:
+        import subprocess
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=15)
+        out = result.stdout or result.stderr or "Comando executado (sem saida)"
+        return out.strip()[:2000]
+    except subprocess.TimeoutExpired:
+        return "Comando excedeu 15s de timeout."
+    except Exception as e:
+        return f"Erro ao executar comando: {e}"
 
 
 @admin_bp.route("/")
