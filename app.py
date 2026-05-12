@@ -135,7 +135,10 @@ def _ensure_schema():
         db.session.commit()
 
 
-_ensure_schema()
+try:
+    _ensure_schema()
+except Exception as _e:
+    app.logger.warning(f"Schema initialization failed (non-fatal): {_e}")
 
 if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
     with app.app_context():
@@ -146,41 +149,44 @@ if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
         db.session.commit()
         app.logger.warning(f"EMERGENCY_UNBAN: {len(bans)} ban(s) removido(s)")
 
-_admin_password_generated = False
-with app.app_context():
-    from core.models import User, Curso
-    from services.crawler import seed_cursos, check_broken_links
-    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-    admin_password = os.environ.get("ADMIN_PASSWORD")
-    if not admin_password:
-        admin_password = secrets.token_urlsafe(16)
-        _admin_password_generated = True
-    admin_user = User.query.filter_by(username=admin_username).first()
-    if not admin_user:
-        old_admin = User.query.filter_by(username="admin").first()
-        if old_admin:
-            old_admin.username = admin_username
-            old_admin.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
-            db.session.commit()
-            app.logger.info(f"Admin renomeado de 'admin' para '{admin_username}' com nova senha")
+try:
+    _admin_password_generated = False
+    with app.app_context():
+        from core.models import User, Curso
+        from services.crawler import seed_cursos, check_broken_links
+        admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+        admin_password = os.environ.get("ADMIN_PASSWORD")
+        if not admin_password:
+            admin_password = secrets.token_urlsafe(16)
+            _admin_password_generated = True
+        admin_user = User.query.filter_by(username=admin_username).first()
+        if not admin_user:
+            old_admin = User.query.filter_by(username="admin").first()
+            if old_admin:
+                old_admin.username = admin_username
+                old_admin.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+                db.session.commit()
+                app.logger.info(f"Admin renomeado de 'admin' para '{admin_username}' com nova senha")
+            else:
+                pw_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
+                db.session.add(User(username=admin_username, password=pw_hash))
+                db.session.commit()
+                app.logger.info(f"Admin criado: {admin_username}")
         else:
-            pw_hash = bcrypt.generate_password_hash(admin_password).decode("utf-8")
-            db.session.add(User(username=admin_username, password=pw_hash))
+            admin_user.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
             db.session.commit()
-            app.logger.info(f"Admin criado: {admin_username}")
-    else:
-        admin_user.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
-        db.session.commit()
-        app.logger.info(f"Admin encontrado e senha atualizada: {admin_username}")
+            app.logger.info(f"Admin encontrado e senha atualizada: {admin_username}")
 
-    if _admin_password_generated:
-        app.logger.warning(f"ADMIN_PASSWORD nao definida. Senha gerada: {admin_password}. Defina ADMIN_PASSWORD no ambiente!")
+        if _admin_password_generated:
+            app.logger.warning(f"ADMIN_PASSWORD nao definida. Senha gerada: {admin_password}. Defina ADMIN_PASSWORD no ambiente!")
 
-    total = Curso.query.count()
-    if total < 2000:
-        app.logger.info(f"Apenas {total} cursos. Populando ate 2000...")
-        criados = seed_cursos(2000 - total)
-        app.logger.info(f"Seed concluido! +{criados} cursos. Total: {Curso.query.count()}")
+        total = Curso.query.count()
+        if total < 2000:
+            app.logger.info(f"Apenas {total} cursos. Populando ate 2000...")
+            criados = seed_cursos(2000 - total)
+            app.logger.info(f"Seed concluido! +{criados} cursos. Total: {Curso.query.count()}")
+except Exception as _init_e:
+    app.logger.warning(f"App initialization failed (non-fatal): {_init_e}")
 
 
 @app.context_processor
