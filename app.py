@@ -15,7 +15,7 @@ import time
 import psutil
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-change-this-secret-key')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 database_path = os.environ.get('DATABASE_PATH', os.path.join(basedir, 'instance', 'database.db'))
@@ -63,7 +63,7 @@ limiter = Limiter(
 )
 socketio = SocketIO(
     app,
-    cors_allowed_origins=os.environ.get('SOCKETIO_CORS_ORIGINS', '*'),
+    cors_allowed_origins=os.environ.get('SOCKETIO_CORS_ORIGINS', 'https://radar-elite.onrender.com'),
     async_mode='threading',
 )
 Talisman(
@@ -124,11 +124,11 @@ def _ensure_schema():
         from core import models
         db.create_all()
         inspector = inspect(db.engine)
-        user_columns = {column['name'] for column in inspector.get_columns('user')}
+        user_columns = {column['name'] for column in inspector.get_columns('app_user')}
         if 'otp_secret' not in user_columns:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN otp_secret VARCHAR(64)'))
+            db.session.execute(text('ALTER TABLE app_user ADD COLUMN otp_secret VARCHAR(64)'))
         if 'otp_enabled' not in user_columns:
-            db.session.execute(text('ALTER TABLE user ADD COLUMN otp_enabled BOOLEAN DEFAULT 0'))
+            db.session.execute(text('ALTER TABLE app_user ADD COLUMN otp_enabled BOOLEAN DEFAULT false'))
         curso_columns = {column['name'] for column in inspector.get_columns('curso')}
         if 'rating' not in curso_columns:
             db.session.execute(text('ALTER TABLE curso ADD COLUMN rating FLOAT DEFAULT 4.0'))
@@ -146,11 +146,15 @@ if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
         db.session.commit()
         app.logger.warning(f"EMERGENCY_UNBAN: {len(bans)} ban(s) removido(s)")
 
+_admin_password_generated = False
 with app.app_context():
     from core.models import User, Curso
     from services.crawler import seed_cursos, check_broken_links
-    admin_username = os.environ.get("ADMIN_USERNAME", "alexsandro")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "alexxp2009")
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    if not admin_password:
+        admin_password = secrets.token_urlsafe(16)
+        _admin_password_generated = True
     admin_user = User.query.filter_by(username=admin_username).first()
     if not admin_user:
         old_admin = User.query.filter_by(username="admin").first()
@@ -168,6 +172,9 @@ with app.app_context():
         admin_user.password = bcrypt.generate_password_hash(admin_password).decode("utf-8")
         db.session.commit()
         app.logger.info(f"Admin encontrado e senha atualizada: {admin_username}")
+
+    if _admin_password_generated:
+        app.logger.warning(f"ADMIN_PASSWORD nao definida. Senha gerada: {admin_password}. Defina ADMIN_PASSWORD no ambiente!")
 
     total = Curso.query.count()
     if total < 2000:

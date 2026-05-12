@@ -40,7 +40,9 @@
     <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3.5 rounded-xl mb-4"><i class="fas fa-exclamation-circle"></i> {{ erro }}</div>
     {% endif %}
     {% if uri %}
-    <div class="bg-white p-4 rounded-xl mb-4 flex justify-center" style="animation:slideUp .4s ease"><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ uri | urlencode }}" alt="QR Code 2FA" class="w-40 h-40"></div>
+    <div class="bg-white p-4 rounded-xl mb-4 flex justify-center" style="animation:slideUp .4s ease">
+      <div id="qrcode" class="w-40 h-40"></div>
+    </div>
     <div class="mb-4" style="animation:slideUp .4s ease .1s both">
       <p class="text-[11px] text-gray-500 uppercase tracking-widest font-semibold mb-1.5 flex items-center gap-1.5"><i class="fas fa-key"></i> Ou digite o código:</p>
       <code class="block bg-[#05080c] p-3 rounded-xl text-cyan-400 text-sm break-all border border-white/5">{{ secret }}</code>
@@ -54,5 +56,18 @@
       <button type="submit" class="btn btn-primary mt-5"><i class="fas fa-check"></i> Ativar 2FA</button>
     </form>
   </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+{% if uri %}
+new QRCode(document.getElementById("qrcode"), {
+  text: "{{ uri | e }}",
+  width: 160,
+  height: 160,
+  colorDark: "#000000",
+  colorLight: "#ffffff",
+  correctLevel: QRCode.CorrectLevel.H
+});
+{% endif %}
+</script>
 </body>
 </html>

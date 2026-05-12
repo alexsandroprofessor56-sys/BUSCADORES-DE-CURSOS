@@ -187,9 +187,8 @@ def validate_password(password):
 
 
 def regenerate_session():
-    session.regenerate = True
-    if hasattr(session, "regenerate"):
-        session.regenerate()
+    from flask import session as sess
+    sess.clear()
 
 
 def record_access(request, geo):

@@ -13,7 +13,7 @@ from services.analytics import analytics_snapshot
 def _database_file(app):
     uri = app.config["SQLALCHEMY_DATABASE_URI"]
     if not uri.startswith("sqlite:///"):
-        raise RuntimeError("Backup local automático está implementado para SQLite neste projeto atual.")
+        return None
     return uri.replace("sqlite:///", "")
 
 
@@ -22,10 +22,13 @@ def build_backup(app):
     os.makedirs(backup_dir, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    database_source = _database_file(app)
-    database_target = os.path.join(backup_dir, f"database-{stamp}.db")
     report_target = os.path.join(backup_dir, f"relatorio-{stamp}.txt")
-    shutil.copy2(database_source, database_target)
+
+    database_source = _database_file(app)
+    database_target = None
+    if database_source:
+        database_target = os.path.join(backup_dir, f"database-{stamp}.db")
+        shutil.copy2(database_source, database_target)
 
     analytics = analytics_snapshot()
     cursos_total = Curso.query.count()
@@ -104,7 +107,11 @@ def send_backup_to_telegram(app):
     )
 
     api = f"https://api.telegram.org/bot{token}"
-    for path, label in ((database_file, "Banco SQLite"), (report_file, "Relatorio completo")):
+    files_to_send = []
+    if database_file:
+        files_to_send.append((database_file, "Banco de dados"))
+    files_to_send.append((report_file, "Relatorio completo"))
+    for path, label in files_to_send:
         with open(path, "rb") as document:
             response = requests.post(
                 f"{api}/sendDocument",
@@ -129,7 +136,7 @@ def cleanup_after_backup():
 
     access_deleted = AccessEvent.query.filter(AccessEvent.created_at < cutoff_dt).delete(synchronize_session=False)
     security_deleted = SecurityEvent.query.filter(SecurityEvent.created_at < cutoff_dt).delete(synchronize_session=False)
-    course_access_deleted = LogAcesso.query.filter(LogAcesso.data < cutoff_text).delete(synchronize_session=False)
+    course_access_deleted = LogAcesso.query.filter(LogAcesso.data < cutoff_dt).delete(synchronize_session=False)
     db.session.commit()
 
     return {

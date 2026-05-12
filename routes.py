@@ -510,15 +510,7 @@ def _run_internal_command(command):
         log_security_event(ip, "whitelist_remove", f"IP removido da whitelist", "info", "")
         return f"IP {ip} removido da whitelist."
 
-    try:
-        import subprocess
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=15)
-        out = result.stdout or result.stderr or "Comando executado (sem saida)"
-        return out.strip()[:2000]
-    except subprocess.TimeoutExpired:
-        return "Comando excedeu 15s de timeout."
-    except Exception as e:
-        return f"Erro ao executar comando: {e}"
+    return f"Comando desconhecido: '{action}'. Digite 'help' para comandos disponiveis."
 
 
 @admin_bp.route("/")
@@ -801,7 +793,7 @@ def redirecionar_curso(id):
     geo = lookup_ip(ip)
     db.session.add(LogAcesso(
         ip=ip,
-        data=datetime.now().isoformat(timespec="seconds"),
+        data=datetime.now(),
         curso_id=curso.id,
     ))
     db.session.commit()
@@ -1132,6 +1124,8 @@ def api_rating(id, voto):
 def api_avatar_upload():
     if not _site_logged_in():
         return jsonify({"success": False, "error": "Nao logado"}), 401
+    if not _csrf_valid():
+        return jsonify({"success": False, "error": "CSRF invalido"}), 400
     if "avatar" not in request.files:
         return jsonify({"success": False, "error": "Nenhum arquivo"})
     f = request.files["avatar"]

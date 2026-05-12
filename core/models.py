@@ -4,6 +4,7 @@ from flask_login import UserMixin
 
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -28,12 +29,12 @@ class Curso(db.Model):
     preco_tipo = db.Column(db.String(20), default='gratuito')
     rating = db.Column(db.Float, default=4.0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id'))
     favoritado_por = db.relationship('User', secondary='favorito', backref='favoritos')
 
 
 favorito = db.Table('favorito',
-    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('user_id', db.Integer, db.ForeignKey('app_user.id')),
     db.Column('curso_id', db.Integer, db.ForeignKey('curso.id'))
 )
 
@@ -58,7 +59,7 @@ class AccessEvent(db.Model):
 class LogAcesso(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ip = db.Column(db.String(50))
-    data = db.Column(db.String(50))
+    data = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     curso_id = db.Column(db.Integer, db.ForeignKey('curso.id'))
 
 
