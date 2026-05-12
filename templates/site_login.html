@@ -1,156 +1,86 @@
 <!DOCTYPE html>
 <html lang="pt-br" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Entrar — Radar Elite</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{
-      font-family:'Inter',sans-serif;
-      background:radial-gradient(ellipse at 30% 20%,#071018,#03060a 80%);
-      color:#e5e7eb;min-height:100vh;display:flex;align-items:center;
-      justify-content:center;padding:20px;position:relative;overflow:hidden
-    }
-    .noise{
-      position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.018;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-repeat:repeat;background-size:256px 256px
-    }
-    .orb{
-      position:fixed;border-radius:50%;filter:blur(200px);pointer-events:none;z-index:0
-    }
-    .orb-1{width:600px;height:600px;background:#06b6d4;top:-250px;right:-150px;opacity:.04;animation:float1 20s ease-in-out infinite}
-    .orb-2{width:400px;height:400px;background:#8b5cf6;bottom:-200px;left:-150px;opacity:.03;animation:float2 25s ease-in-out infinite}
-    @keyframes float1{0%,100%{transform:translate(0,0)}25%{transform:translate(40px,-50px)}50%{transform:translate(-20px,30px)}75%{transform:translate(30px,10px)}}
-    @keyframes float2{0%,100%{transform:translate(0,0)}33%{transform:translate(-40px,-30px)}66%{transform:translate(30px,40px)}}
-    .card{
-      position:relative;z-index:1;
-      width:100%;max-width:400px;
-      background:rgba(255,255,255,.01);
-      border:1px solid rgba(255,255,255,.03);
-      border-radius:24px;
-      padding:48px 40px 40px;
-      animation:cardIn .5s cubic-bezier(.22,1,.36,1)
-    }
-    @keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-    .logo{
-      width:56px;height:56px;border-radius:16px;
-      background:linear-gradient(135deg,#06b6d4,#0891b2);
-      display:flex;align-items:center;justify-content:center;
-      font-size:20px;font-weight:900;color:#fff;
-      margin:0 auto 20px;
-      box-shadow:0 0 0 2px rgba(6,182,212,.06),0 20px 48px rgba(6,182,212,.08)
-    }
-    h1{text-align:center;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:4px}
-    h1 span{background:linear-gradient(135deg,#22d3ee,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .sub{text-align:center;color:rgba(255,255,255,.2);font-size:14px;margin-bottom:32px}
-    .field{margin-bottom:16px}
-    .field label{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-    .field input{
-      width:100%;padding:14px 16px;
-      background:rgba(255,255,255,.02);
-      border:1px solid rgba(255,255,255,.04);
-      border-radius:12px;
-      color:#fff;font-size:14px;font-family:'Inter',sans-serif;
-      outline:none;transition:all .3s
-    }
-    .field input:focus{
-      border-color:rgba(6,182,212,.15);
-      box-shadow:0 0 0 3px rgba(6,182,212,.03),0 0 30px rgba(6,182,212,.02);
-      background:rgba(255,255,255,.03)
-    }
-    .field input::placeholder{color:rgba(255,255,255,.08)}
-    .btn{
-      width:100%;padding:14px;border-radius:12px;
-      font-weight:700;font-size:14px;border:none;cursor:pointer;
-      transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;
-      margin-top:8px
-    }
-    .btn-primary{
-      background:linear-gradient(135deg,#06b6d4,#0891b2);
-      color:#fff;
-      box-shadow:0 4px 20px rgba(6,182,212,.15)
-    }
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(6,182,212,.2)}
-    .btn-primary:active{transform:scale(.97)}
-    .divider{
-      display:flex;align-items:center;gap:16px;
-      color:rgba(255,255,255,.06);font-size:11px;font-weight:600;
-      text-transform:uppercase;letter-spacing:1px;margin:24px 0
-    }
-    .divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.04),transparent)}
-    .btn-google{
-      background:rgba(255,255,255,.95);color:#1f2937;
-      box-shadow:0 4px 20px rgba(0,0,0,.1)
-    }
-    .btn-google:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.15)}
-    .error{
-      display:flex;align-items:center;gap:10px;
-      background:rgba(239,68,68,.03);border:1px solid rgba(239,68,68,.06);
-      color:#fca5a5;padding:12px 16px;border-radius:12px;
-      font-size:13px;margin-bottom:24px
-    }
-    .error i{font-size:14px;flex-shrink:0}
-    .auto-reg{text-align:center;color:rgba(255,255,255,.08);font-size:11px;margin-top:8px}
-    .auto-reg span{color:rgba(6,182,212,.15)}
-    .skip{
-      text-align:center;margin-top:24px;
-      animation:fadeIn .6s ease .5s both
-    }
-    .skip a{
-      color:rgba(255,255,255,.08);font-size:12px;text-decoration:none;
-      transition:color .3s;display:inline-flex;align-items:center;gap:6px
-    }
-    .skip a:hover{color:rgba(255,255,255,.2)}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-    @media(max-width:480px){
-      body{padding:16px}
-      .card{padding:32px 24px 28px;border-radius:20px}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — RadarElite</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden}
+.noise{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.015;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px}
+.orb{position:fixed;border-radius:50%;filter:blur(150px);pointer-events:none;z-index:0}
+.orb-1{width:500px;height:500px;background:radial-gradient(circle,#a855f7,transparent 70%);top:-200px;right:-100px;opacity:.12;animation:fl1 20s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:radial-gradient(circle,#ec4899,transparent 70%);bottom:-150px;left:-80px;opacity:.1;animation:fl2 25s ease-in-out infinite}
+@keyframes fl1{0%,100%{transform:translate(0,0)}25%{transform:translate(50px,-40px)}50%{transform:translate(-20px,30px)}75%{transform:translate(30px,10px)}}
+@keyframes fl2{0%,100%{transform:translate(0,0)}33%{transform:translate(-40px,-30px)}66%{transform:translate(30px,40px)}}
+.card{position:relative;z-index:1;width:100%;max-width:380px;background:rgba(255,255,255,.01);border:1px solid rgba(255,255,255,.03);border-radius:24px;padding:44px 36px 36px;animation:cardIn .5s cubic-bezier(.22,1,.36,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;animation:logoGlow 3s ease-in-out infinite}
+.logo svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;animation:logoSpin 8s linear infinite}
+@keyframes logoSpin{to{transform:rotate(360deg)}}
+@keyframes logoGlow{0%,100%{box-shadow:0 0 20px rgba(168,85,247,.2)}50%{box-shadow:0 0 40px rgba(168,85,247,.4)}}
+h1{text-align:center;font-size:22px;font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:4px}
+h1 span{background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{text-align:center;color:rgba(255,255,255,.15);font-size:13px;margin-bottom:28px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,.15);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.field input{width:100%;padding:13px 16px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:12px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:all .3s}
+.field input:focus{border-color:rgba(168,85,247,.12);box-shadow:0 0 0 3px rgba(168,85,247,.03)}
+.field input::placeholder{color:rgba(255,255,255,.06)}
+.btn{width:100%;padding:14px;border-radius:12px;font-weight:700;font-size:13px;border:none;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;box-shadow:0 4px 20px rgba(168,85,247,.1);margin-top:4px}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(168,85,247,.15)}
+.btn-primary:active{transform:scale(.97)}
+.divider{display:flex;align-items:center;gap:16px;color:rgba(255,255,255,.04);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:20px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent)}
+.btn-google{background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.04)}
+.btn-google:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.error{display:flex;align-items:center;gap:10px;background:rgba(239,68,68,.03);border:1px solid rgba(239,68,68,.06);color:#fca5a5;padding:12px 16px;border-radius:12px;font-size:12px;margin-bottom:20px}
+.auto-reg{text-align:center;color:rgba(255,255,255,.06);font-size:10px;margin-top:8px}
+.skip{text-align:center;margin-top:22px}
+.skip a{color:rgba(255,255,255,.06);font-size:11px;text-decoration:none;transition:color .3s;display:inline-flex;align-items:center;gap:6px}
+.skip a:hover{color:rgba(255,255,255,.12)}
+</style>
 </head>
 <body>
-  <div class="noise"></div>
-  <div class="orb orb-1"></div><div class="orb orb-2"></div>
+<div class="noise"></div>
+<div class="orb orb-1"></div><div class="orb orb-2"></div>
 
-  <div class="card">
-    <div class="logo">RE</div>
-    <h1>Radar<span>Elite</span></h1>
-    <p class="sub">Entre para explorar os melhores cursos</p>
+<div class="card">
+  <div class="logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+  <h1>Radar<span>Elite</span></h1>
+  <p class="sub">Entre para explorar os melhores cursos</p>
 
-    {% if erro %}
-    <div class="error"><i class="fas fa-exclamation-circle"></i> {{ erro }}</div>
-    {% endif %}
+  {% if erro %}
+  <div class="error"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:none;stroke:#fca5a5;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> {{ erro }}</div>
+  {% endif %}
 
-    <form method="POST" action="{{ url_for('admin_bp.public_login') }}">
-      <div class="field">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="seu@email.com" required autofocus>
-      </div>
-      <div class="field">
-        <label>Senha</label>
-        <input type="password" name="password" placeholder="Sua senha" required minlength="4">
-      </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-arrow-right-to-bracket"></i> Entrar
-      </button>
-      <p class="auto-reg">Novo por aqui? Sua conta é criada automaticamente <span>⚡</span></p>
-    </form>
-
-    {% if google_ready %}
-    <div class="divider">ou</div>
-    <a href="{{ google_login_url }}" class="btn btn-google">
-      <i class="fab fa-google"></i> Continuar com Google
-    </a>
-    {% endif %}
-
-    <div class="skip">
-      <a href="/"><i class="fas fa-compass"></i> Explorar sem entrar</a>
+  <form method="POST" action="{{ url_for('admin_bp.public_login') }}">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="seu@email.com" required autofocus>
     </div>
-  </div>
+    <div class="field">
+      <label>Senha</label>
+      <input type="password" name="password" placeholder="Sua senha" required minlength="4">
+    </div>
+    <button type="submit" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Entrar
+    </button>
+    <p class="auto-reg">Novo? Conta criada automaticamente</p>
+  </form>
+
+  {% if google_ready %}
+  <div class="divider">ou</div>
+  <a href="{{ google_login_url }}" class="btn btn-google">
+    <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Continuar com Google
+  </a>
+  {% endif %}
+
+  <div class="skip"><a href="/"><svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg> Explorar sem entrar</a></div>
+</div>
 </body>
 </html>

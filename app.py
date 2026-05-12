@@ -102,6 +102,9 @@ def _ensure_schema():
             db.session.execute(text('ALTER TABLE user ADD COLUMN otp_secret VARCHAR(64)'))
         if 'otp_enabled' not in user_columns:
             db.session.execute(text('ALTER TABLE user ADD COLUMN otp_enabled BOOLEAN DEFAULT 0'))
+        curso_columns = {column['name'] for column in inspector.get_columns('curso')}
+        if 'rating' not in curso_columns:
+            db.session.execute(text('ALTER TABLE curso ADD COLUMN rating FLOAT DEFAULT 4.0'))
         db.session.commit()
 
 

@@ -178,7 +178,8 @@ def seed_cursos(quantidade=500):
             areas=area, exemplos=base_name,
             link_afiliado=plat_url + f"?src=radar_{criados}",
             ativo=True, cliques=random.randint(0, 500),
-            nivel=nivel, preco_tipo=preco
+            nivel=nivel, preco_tipo=preco,
+            rating=round(random.uniform(3.0, 5.0), 1),
         ))
         criados += 1
         if criados % 100 == 0:

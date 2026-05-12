@@ -26,6 +26,7 @@ class Curso(db.Model):
     cliques = db.Column(db.Integer, default=0)
     nivel = db.Column(db.String(50), default='iniciante')
     preco_tipo = db.Column(db.String(20), default='gratuito')
+    rating = db.Column(db.Float, default=4.0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     favoritado_por = db.relationship('User', secondary='favorito', backref='favoritos')
