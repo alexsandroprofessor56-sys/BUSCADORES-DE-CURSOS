@@ -133,6 +133,17 @@ def security_gate():
             if not _csrf_valid():
                 log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", ua)
                 abort(400)
+
+    if request.path.startswith("/api/"):
+        return None
+
+    allowed_public = {"/login", "/admin/login", "/login/google", "/authorize", "/sair"}
+    if request.path not in allowed_public and not request.path.startswith("/admin/"):
+        if not _site_logged_in() or not session.get("site_user_email"):
+            if request.headers.get("X-Requested-With") != "XMLHttpRequest":
+                session["redirect_after_login"] = request.full_path
+                return redirect(url_for("admin_bp.public_login"))
+            return jsonify({"error": "login_required", "message": "Faça login primeiro"}), 401
     return None
 
 
