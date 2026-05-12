@@ -129,7 +129,7 @@ def security_gate():
             return jsonify({"error": "lockdown", "message": "Sistema em lockdown. Tente novamente mais tarde."}), 503
         abort(503)
     if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.path.startswith("/api/"):
-        if request.path not in {"/admin/login", "/login/google", "/login", "/authorize", "/admin/terminal"}:
+        if request.path not in {"/admin/login", "/login/google", "/login", "/authorize", "/admin/terminal", "/admin/crawler"}:
             if not _csrf_valid():
                 log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", ua)
                 abort(400)
@@ -669,7 +669,8 @@ def public_login():
         session["site_user_email"] = user.username
         session["site_user_name"] = user.username.split("@")[0]
         session["site_user_logged_at"] = datetime.now().isoformat(timespec="seconds")
-        return redirect(url_for("admin_bp.index"))
+        redirect_to = session.pop("redirect_after_login", None)
+        return redirect(redirect_to or url_for("admin_bp.index"))
 
     return render_template("site_login.html", google_ready=google_ready, google_login_url=google_url)
 
@@ -705,7 +706,8 @@ def public_google_authorize():
                 "info",
                 request.headers.get("User-Agent", ""),
             )
-            return redirect(url_for("admin_bp.index"))
+            redirect_to = session.pop("redirect_after_login", None)
+            return redirect(redirect_to or url_for("admin_bp.index"))
     except Exception:
         current_app.logger.exception("Falha no login Google publico")
     return redirect(url_for("admin_bp.public_login"))
@@ -788,6 +790,9 @@ def admin_dashboard():
 
 @admin_bp.route("/c/<int:id>")
 def redirecionar_curso(id):
+    if not _site_logged_in():
+        session["redirect_after_login"] = url_for("admin_bp.redirecionar_curso", id=id)
+        return redirect(url_for("admin_bp.public_login"))
     import app
     curso = db.session.get(Curso, id)
     if not curso: return "404", 404
