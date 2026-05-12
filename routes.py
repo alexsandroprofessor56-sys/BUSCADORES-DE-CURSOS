@@ -102,7 +102,7 @@ def security_gate():
             return jsonify({"error": "lockdown", "message": "Sistema em lockdown. Tente novamente mais tarde."}), 503
         abort(503)
     if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.path.startswith("/api/"):
-        if request.path not in {"/admin/login", "/login/google", "/login", "/authorize"}:
+        if request.path not in {"/admin/login", "/login/google", "/login", "/authorize", "/admin/terminal"}:
             if not _csrf_valid():
                 log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", request.headers.get("User-Agent", ""))
                 abort(400)
