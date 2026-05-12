@@ -88,7 +88,7 @@ def security_gate():
     if IPBanido.query.filter_by(ip=ip).first():
         abort(403)
     if request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.path.startswith("/api/"):
-        if request.path not in {"/admin/login", "/login/google", "/authorize"}:
+        if request.path not in {"/admin/login", "/login/google", "/login", "/authorize"}:
             if not _csrf_valid():
                 log_security_event(ip, "csrf_failed", f"CSRF inválido em {request.path}", "warning", request.headers.get("User-Agent", ""))
                 abort(400)
