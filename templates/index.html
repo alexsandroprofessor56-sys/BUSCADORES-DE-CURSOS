@@ -46,7 +46,8 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
 
 /* hero */
 .hero{position:relative;z-index:2;text-align:center;padding:36px 24px 28px;max-width:700px;margin:0 auto}
-.hero-user-name{font-size:15px;font-weight:600;color:rgba(255,255,255,.3);margin-bottom:2px;animation:fadeUp .5s ease .1s both;letter-spacing:.02em}
+.hero-user-role{font-size:11px;font-weight:700;color:rgba(168,85,247,.4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1px;animation:fadeUp .5s ease .05s both}
+.hero-user-name{font-size:18px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:2px;animation:fadeUp .5s ease .1s both;letter-spacing:.01em}
 .hero-brand{font-size:42px;font-weight:900;background:linear-gradient(135deg,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.03em;margin-bottom:6px;animation:fadeUp .5s ease .15s both;line-height:1.1}
 .hero-sub{color:rgba(255,255,255,.2);font-size:14px;animation:fadeUp .5s ease .2s both}
 
@@ -185,9 +186,8 @@ body{font-family:'Inter',sans-serif;background:#0a0a1a;color:#e0e0f0;overflow-x:
 
 <main style="position:relative;z-index:2">
   <section class="hero">
-    {% if session.site_user_email %}
-    <div class="hero-user-name">{{ session.site_user_name or session.site_user_email.split('@')[0] }}</div>
-    {% endif %}
+    <div class="hero-user-role">Desenvolvedor</div>
+    <div class="hero-user-name">Alexsandro Souza Melo</div>
     <div class="hero-brand">RADARELITE</div>
     <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
     <p class="hero-sub">Encontre o curso ideal para sua carreira</p>
