@@ -124,11 +124,11 @@ def _ensure_schema():
         from core import models
         db.create_all()
         inspector = inspect(db.engine)
-        user_columns = {column['name'] for column in inspector.get_columns('app_user')}
+        user_columns = {column['name'] for column in inspector.get_columns('user')}
         if 'otp_secret' not in user_columns:
-            db.session.execute(text('ALTER TABLE app_user ADD COLUMN otp_secret VARCHAR(64)'))
+            db.session.execute(text('ALTER TABLE "user" ADD COLUMN otp_secret VARCHAR(64)'))
         if 'otp_enabled' not in user_columns:
-            db.session.execute(text('ALTER TABLE app_user ADD COLUMN otp_enabled BOOLEAN DEFAULT false'))
+            db.session.execute(text('ALTER TABLE "user" ADD COLUMN otp_enabled BOOLEAN DEFAULT false'))
         curso_columns = {column['name'] for column in inspector.get_columns('curso')}
         if 'rating' not in curso_columns:
             db.session.execute(text('ALTER TABLE curso ADD COLUMN rating FLOAT DEFAULT 4.0'))
