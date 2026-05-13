@@ -149,6 +149,19 @@ if os.environ.get("EMERGENCY_UNBAN", "").lower() in ("1", "true", "yes"):
         db.session.commit()
         app.logger.warning(f"EMERGENCY_UNBAN: {len(bans)} ban(s) removido(s)")
 
+if os.environ.get("RESET_USERS", "").lower() in ("1", "true", "yes"):
+    with app.app_context():
+        from core.models import User, SecurityEvent, AccessEvent, LogAcesso
+        admin_username = os.environ.get("ADMIN_USERNAME", "alexsandro")
+        usuarios = User.query.filter(User.username != admin_username).all()
+        for u in usuarios:
+            db.session.delete(u)
+        SecurityEvent.query.delete()
+        AccessEvent.query.delete()
+        LogAcesso.query.delete()
+        db.session.commit()
+        app.logger.warning(f"RESET_USERS: {len(usuarios)} usuario(s) removido(s), eventos limpos")
+
 try:
     _admin_password_generated = False
     with app.app_context():
